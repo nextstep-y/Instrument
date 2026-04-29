@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Survey Equipment Dashboard – J.2505</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235; --border: #1f2d47;
+    --accent: #3b82f6; --accent2: #06b6d4; --accent3: #8b5cf6;
+    --gold: #f59e0b; --green: #10b981; --red: #ef4444;
+    --text: #f1f5f9; --muted: #64748b; --muted2: #94a3b8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; overflow-x:hidden; }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px), linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);
+    background-size:48px 48px;
+  }
+  .wrapper { position:relative; z-index:1; max-width:1400px; margin:0 auto; padding:32px 24px 80px; }
+
+  /* LOADING */
+  .loading-screen {
+    position:fixed; inset:0; background:var(--bg); z-index:999;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;
+  }
+  .spinner { width:48px; height:48px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .loading-text { font-family:'Syne',sans-serif; font-size:14px; color:var(--muted2); letter-spacing:2px; text-transform:uppercase; }
+  .loading-screen.hidden { display:none; }
+
+  /* HEADER */
+  header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:40px; gap:24px; flex-wrap:wrap; }
+  .header-left h1 {
+    font-family:'Syne',sans-serif; font-size:clamp(24px,4vw,42px); font-weight:800;
+    line-height:1.1; letter-spacing:-1px;
+    background:linear-gradient(135deg,#fff 0%,var(--accent2) 60%,var(--accent3) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .header-left .sub { font-size:13px; color:var(--muted2); margin-top:8px; letter-spacing:.5px; text-transform:uppercase; font-weight:500; }
+  .header-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+  .badge {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.25);
+    color:var(--green); padding:6px 14px; border-radius:99px; font-size:12px; font-weight:500;
+  }
+  .badge::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .last-update { font-size:11px; color:var(--muted); }
+  .refresh-btn {
+    background:var(--surface); border:1px solid var(--border); color:var(--muted2);
+    padding:8px 16px; border-radius:10px; font-size:12px; cursor:pointer;
+    font-family:'DM Sans',sans-serif; transition:all .15s; display:flex; align-items:center; gap:6px;
+  }
+  .refresh-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .refresh-btn svg { transition:transform .3s; }
+  .refresh-btn.spinning svg { animation:spin .8s linear infinite; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family:'Syne',sans-serif; font-size:14px; font-weight:700;
+    text-transform:uppercase; letter-spacing:2px; color:var(--muted2);
+    margin-bottom:16px; display:flex; align-items:center; gap:10px;
+  }
+  .section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* FILTER TABS */
+  .filter-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+  .filter-btn {
+    background:var(--surface); border:1px solid var(--border); color:var(--muted2);
+    padding:7px 16px; border-radius:99px; font-size:12px; font-weight:500;
+    cursor:pointer; transition:all .15s; font-family:'DM Sans',sans-serif; white-space:nowrap;
+  }
+  .filter-btn:hover, .filter-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+  /* TABLE */
+  .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:20px; overflow:hidden; margin-bottom:48px; animation:fadeUp .6s ease both; }
+  .table-header { padding:20px 24px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .table-header h2 { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; }
+  .search-box { display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 14px; }
+  .search-box input { background:none; border:none; outline:none; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; width:160px; }
+  .search-box input::placeholder { color:var(--muted); }
+
+  .scroll-x { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; min-width:700px; }
+  thead th {
+    background:var(--surface2); padding:12px 14px; text-align:center;
+    font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+    color:var(--muted2); white-space:nowrap; border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:2;
+  }
+  thead th:first-child { text-align:left; padding-left:24px; }
+  tbody tr { border-bottom:1px solid rgba(31,45,71,.5); transition:background .15s; animation:fadeUp .4s ease both; }
+  tbody tr:hover { background:rgba(59,130,246,.05); }
+  tbody tr:last-child { border-bottom:none; }
+  td { padding:13px 14px; text-align:center; font-size:13px; color:var(--muted2); }
+  td:first-child { text-align:left; padding-left:24px; font-weight:600; color:var(--text); font-size:13.5px; white-space:nowrap; }
+  .cell-val { display:inline-flex; align-items:center; justify-content:center; width:32px; height:28px; border-radius:8px; font-weight:700; font-size:13px; }
+  .cell-val.has { background:rgba(59,130,246,.15); color:var(--accent); }
+  .cell-val.zero { color:var(--border); }
+  .total-cell { font-family:'Syne',sans-serif; font-weight:800; font-size:15px; color:var(--text); }
+  tfoot tr { background:rgba(59,130,246,.06) !important; border-top:2px solid var(--border); }
+  tfoot td { font-weight:700; color:var(--accent2) !important; font-size:13px; }
+  tfoot td:first-child { font-family:'Syne',sans-serif; font-size:12px; text-transform:uppercase; letter-spacing:1px; }
+  tr.hidden { display:none; }
+
+  .error-box { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); color:#fca5a5; padding:16px 20px; border-radius:12px; font-size:13px; margin-bottom:24px; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:var(--surface); }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">
+  <div class="spinner"></div>
+  <div class="loading-text">Loading from Google Sheets…</div>
+</div>
+
+<div class="wrapper">
+  <header>
+    <div class="header-left">
+      <h1>Survey Equipment<br>Dashboard</h1>
+      <div class="sub">J.2505 &nbsp;·&nbsp; สรุปเครื่องมือสำรวจ</div>
+    </div>
+    <div class="header-right">
+      <div class="badge">Live – Google Sheets</div>
+      <div class="last-update" id="lastUpdate">Loading…</div>
+      <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 4v6h-6M1 20v-6h6"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <div id="errorBox" class="error-box" style="display:none"></div>
+  <div class="section-title">👤 Breakdown by Employee</div>
+  <div class="filter-row" id="filterRow"></div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <h2 id="tableTitle">All Employees</h2>
+      <div class="search-box" id="searchWrap">
+        <svg width="14" height="14" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Search employee…" id="searchInput" oninput="filterTable()">
+      </div>
+    </div>
+    <div class="scroll-x">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+        <tfoot id="tableFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+const SHEET_ID  = '1m7s0JDQIPmouRrFZRE2a4Dcc_XVW-LsJKUrgzkkdKUY';
+const API_KEY   = 'AIzaSyBsZiG4o9FbwduovOKNgAH08roxiN7cXyY';
+const BASE_URL  = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
+
+// Sheets to exclude from tool filter tabs
+const EXCLUDE_SHEETS = ['Dashboard','Summary','NEW TOOL TEMPLATE'];
+
+// ── STATE ───────────────────────────────────────────────────
+let state = {
+  sheetNames: [],   // all tool sheet names
+  dashboard: null,  // { headers, employees, totals }
+  details: {},      // sheetName -> rows[]
+  activeFilter: 'all'
+};
+
+// ── HELPERS ─────────────────────────────────────────────────
+async function apiFetch(path) {
+  const url = `${BASE_URL}${path}&key=${API_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+function cellVal(v) {
+  if (v === undefined || v === null || v === '') return '';
+  return v;
+}
+
+function showError(msg) {
+  const box = document.getElementById('errorBox');
+  box.style.display = 'block';
+  box.textContent = '❌ ' + msg;
+}
+
+function hideError() {
+  document.getElementById('errorBox').style.display = 'none';
+}
+
+// ── LOAD SHEET LIST ─────────────────────────────────────────
+async function loadSheetNames() {
+  const data = await apiFetch('?fields=sheets.properties.title');
+  return data.sheets
+    .map(s => s.properties.title)
+    .filter(n => !EXCLUDE_SHEETS.includes(n));
+}
+
+// ── LOAD DASHBOARD SHEET ────────────────────────────────────
+async function loadDashboard() {
+  const data = await apiFetch('/values/Dashboard?majorDimension=ROWS');
+  const rows = data.values || [];
+
+  // Row index 2 = header row, index 3+ = employee data
+  const headerRow = rows[2] || [];
+
+  // Build headers: skip col 0 (employee name), find non-empty cols
+  const headers = [];
+  for (let c = 1; c < headerRow.length; c++) {
+    const h = String(headerRow[c] || '').replace(/\n/g,' ').trim();
+    if (h) headers.push({ col: c, name: h });
+  }
+
+  const employees = [];
+  for (let r = 3; r < rows.length; r++) {
+    const name = String(rows[r][0] || '').trim();
+    if (!name || name.startsWith('รวม') || name.startsWith('ที่ใช้')) break;
+    const vals = headers.map(h => {
+      const v = (rows[r] || [])[h.col];
+      return v !== undefined && v !== '' ? (Number(v) || 0) : 0;
+    });
+    employees.push({ name, vals });
+  }
+
+  // Total row
+  const totalRow = rows.find(r => String(r[0]).startsWith('รวมทั้งหมด')) || [];
+  const totals = headers.map(h => Number((totalRow)[h.col]) || 0);
+
+  return { headers: headers.map(h => h.name), employees, totals };
+}
+
+// ── LOAD TOOL DETAIL SHEET ───────────────────────────────────
+async function loadToolDetail(sheetName) {
+  const encoded = encodeURIComponent(sheetName);
+  const data = await apiFetch(`/values/${encoded}?majorDimension=ROWS`);
+  const rows = data.values || [];
+
+  const result = [];
+  // Data starts at row index 3 (after title, note, header)
+  for (let r = 3; r < rows.length; r++) {
+    const row = rows[r] || [];
+    const no     = cellVal(row[0]);
+    const type   = String(cellVal(row[1]) || '').trim();
+    const brand  = String(cellVal(row[2]) || '').trim();
+    const model  = String(cellVal(row[3]) || '').trim();
+    const serial = String(cellVal(row[4]) || '').trim();
+    const user   = String(cellVal(row[5]) || '').trim();
+    const amt    = cellVal(row[6]);
+    const remark = String(cellVal(row[7]) || '').trim();
+
+    if (!user && !no) continue;
+    result.push({
+      no, type, brand, model, serial, user,
+      amount: amt !== '' ? Number(amt) : '',
+      remark
+    });
+  }
+  return result;
+}
+
+// ── MAIN LOAD ────────────────────────────────────────────────
+async function loadAll() {
+  document.getElementById('loadingScreen').classList.remove('hidden');
+  document.getElementById('refreshBtn').classList.add('spinning');
+  hideError();
+
+  try {
+    // 1. Get sheet names
+    state.sheetNames = await loadSheetNames();
+
+    // 2. Load dashboard + all tool details in parallel
+    const [dashboard, ...detailResults] = await Promise.all([
+      loadDashboard(),
+      ...state.sheetNames.map(n => loadToolDetail(n))
+    ]);
+
+    state.dashboard = dashboard;
+    state.sheetNames.forEach((name, i) => {
+      state.details[name] = detailResults[i];
+    });
+
+    document.getElementById('lastUpdate').textContent =
+      'Updated: ' + new Date().toLocaleTimeString('th-TH');
+
+    buildFilterRow();
+    renderSummaryTable();
+
+  } catch (err) {
+    showError('โหลดข้อมูลไม่สำเร็จ: ' + err.message);
+    console.error(err);
+  } finally {
+    document.getElementById('loadingScreen').classList.add('hidden');
+    document.getElementById('refreshBtn').classList.remove('spinning');
+  }
+}
+
+// ── BUILD FILTER TABS ────────────────────────────────────────
+function buildFilterRow() {
+  const row = document.getElementById('filterRow');
+  row.innerHTML =
+    `<button class="filter-btn active" data-sheet="all">All</button>` +
+    state.sheetNames.map(n =>
+      `<button class="filter-btn" data-sheet="${n.replace(/"/g,'&quot;')}">${n}</button>`
+    ).join('');
+
+  // Attach click listeners via event delegation
+  row.onclick = function(e) {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    setFilter(btn.dataset.sheet, btn);
+  };
+}
+
+function setFilter(f, btn) {
+  state.activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (f === 'all') renderSummaryTable();
+  else renderDetailTable(f);
+}
+
+// ── SUMMARY TABLE ────────────────────────────────────────────
+function renderSummaryTable() {
+  const { headers, employees, totals } = state.dashboard;
+  document.getElementById('tableTitle').textContent = 'All Employees';
+  document.getElementById('searchWrap').style.display = '';
+  document.getElementById('searchInput').value = '';
+
+  document.getElementById('tableHead').innerHTML = `<tr>
+    <th style="text-align:left;padding-left:24px">Employee</th>
+    ${headers.map(h => `<th>${h}</th>`).join('')}
+    <th>Total</th>
+  </tr>`;
+
+  document.getElementById('tableBody').innerHTML = employees.map((emp, i) => {
+    const total = emp.vals.reduce((a,b)=>a+b,0);
+    return `<tr data-name="${emp.name.toLowerCase()}" style="animation-delay:${i*.04}s">
+      <td>${emp.name}</td>
+      ${emp.vals.map(v=>`<td><span class="cell-val ${v>0?'has':'zero'}">${v>0?v:'—'}</span></td>`).join('')}
+      <td class="total-cell">${total}</td>
+    </tr>`;
+  }).join('');
+
+  const grand = employees.reduce((s,e)=>s+e.vals.reduce((a,b)=>a+b,0),0);
+  document.getElementById('tableFoot').innerHTML = `<tr>
+    <td>TOTAL</td>
+    ${totals.map(t=>`<td style="font-family:'Syne',sans-serif;font-size:14px">${t}</td>`).join('')}
+    <td style="font-family:'Syne',sans-serif;font-size:16px;color:var(--accent)">${grand}</td>
+  </tr>`;
+}
+
+// ── DETAIL TABLE ─────────────────────────────────────────────
+function renderDetailTable(sheetName) {
+  const rows = state.details[sheetName] || [];
+  document.getElementById('tableTitle').textContent = sheetName + ' — Detail';
+  document.getElementById('searchWrap').style.display = 'none';
+
+  document.getElementById('tableHead').innerHTML = `<tr>
+    <th style="text-align:left;padding-left:24px">No.</th>
+    <th style="text-align:left">TYPE</th>
+    <th>Brand</th><th>Model</th>
+    <th>Serial No.</th><th>USER</th>
+    <th>Amount</th>
+    <th style="text-align:left">REMARK</th>
+  </tr>`;
+
+  let total = 0;
+  document.getElementById('tableBody').innerHTML = rows.map((r,i) => {
+    const amt = r.amount;
+    if (typeof amt === 'number' && amt > 0) total += amt;
+    const amtHTML = amt === '' ? `<span class="cell-val zero">—</span>`
+      : amt === 0 ? `<span class="cell-val zero">0</span>`
+      : `<span class="cell-val has">${amt}</span>`;
+    return `<tr style="animation-delay:${i*.03}s">
+      <td style="text-align:left;padding-left:24px;color:var(--muted2)">${r.no}</td>
+      <td style="text-align:left;font-weight:600;color:var(--text)">${r.type||'—'}</td>
+      <td>${r.brand||'—'}</td>
+      <td>${r.model||'—'}</td>
+      <td style="font-family:monospace;font-size:12px;color:var(--accent2)">${r.serial||'—'}</td>
+      <td style="font-weight:600;color:var(--text)">${r.user||'—'}</td>
+      <td>${amtHTML}</td>
+      <td style="text-align:left">${r.remark?`<span style="color:var(--gold);font-size:11px">${r.remark}</span>`:''}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tableFoot').innerHTML = `<tr>
+    <td colspan="6" style="text-align:right;padding-right:16px">TOTAL OUT</td>
+    <td style="font-family:'Syne',sans-serif;font-size:15px;color:var(--accent)">${total}</td>
+    <td></td>
+  </tr>`;
+}
+
+// ── SEARCH ───────────────────────────────────────────────────
+function filterTable() {
+  if (state.activeFilter !== 'all') return;
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#tableBody tr').forEach(row => {
+    row.classList.toggle('hidden', !(row.dataset.name||'').includes(q));
+  });
+}
+
+// ── START ────────────────────────────────────────────────────
+loadAll();
+</script>
+</body>
+</html>
+
