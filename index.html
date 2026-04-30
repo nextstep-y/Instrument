@@ -165,35 +165,53 @@
 
 <script>
 // ── CONFIG ──────────────────────────────────────────────────
-const SHEET_ID  = '1m7s0JDQIPmouRrFZRE2a4Dcc_XVW-LsJKUrgzkkdKUY';
-const API_KEY   = 'AIzaSyBsZiG4o9FbwduovOKNgAH08roxiN7cXyY';
-const BASE_URL  = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
+const SHEET_ID = '1m7s0JDQIPmouRrFZRE2a4Dcc_XVW-LsJKUrgzkkdKUY';
 
-// Sheets to exclude from tool filter tabs
-const EXCLUDE_SHEETS = ['Dashboard','Summary','NEW TOOL TEMPLATE'];
+// Tool sheet names — เพิ่ม/ลบตามชื่อ Sheet จริงใน Google Sheets
+const TOOL_SHEETS = [
+  'TOTAL STATION', 'AUTOMATIC LEVEL', 'Single Prism Set', 'Mini Prism',
+  'Aluminium Tripod', 'Measure Tape (5m.)', 'Measure Tape (10m.)', 'Measure Tape (50m.)',
+  'Safety harness', 'Calculator', 'Umbrella', 'GPS', 'Walkie Talkie',
+  'Total Station Battery', 'USB'
+];
 
 // ── STATE ───────────────────────────────────────────────────
-let state = {
-  sheetNames: [],   // all tool sheet names
-  dashboard: null,  // { headers, employees, totals }
-  details: {},      // sheetName -> rows[]
-  activeFilter: 'all'
-};
+let state = { dashboard: null, details: {}, activeFilter: 'all' };
 
-// ── HELPERS ─────────────────────────────────────────────────
-async function apiFetch(path) {
-  const url = `${BASE_URL}${path}&key=${API_KEY}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error?.message || `HTTP ${res.status}`);
-  }
-  return res.json();
-}
+// ── JSONP via gviz/tq (ไม่มี CORS) ──────────────────────────
+let _cbId = 0;
+function fetchSheet(sheetName) {
+  return new Promise((resolve, reject) => {
+    const cbName = `_gvizCb${_cbId++}`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq`
+      + `?tqx=out:json;responseHandler:${cbName}`
+      + `&sheet=${encodeURIComponent(sheetName)}`;
 
-function cellVal(v) {
-  if (v === undefined || v === null || v === '') return '';
-  return v;
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      cleanup(); reject(new Error(`Timeout loading "${sheetName}"`));
+    }, 15000);
+
+    window[cbName] = (data) => {
+      cleanup();
+      // gviz returns table with cols + rows
+      const cols = data.table.cols.map(c => c.label || '');
+      const rows = (data.table.rows || []).map(r =>
+        (r.c || []).map(cell => (cell && cell.v !== null && cell.v !== undefined) ? cell.v : '')
+      );
+      resolve({ cols, rows });
+    };
+
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    script.onerror = () => { cleanup(); reject(new Error(`Cannot load "${sheetName}"`)); };
+    script.src = url;
+    document.head.appendChild(script);
+  });
 }
 
 function showError(msg) {
@@ -201,75 +219,53 @@ function showError(msg) {
   box.style.display = 'block';
   box.textContent = '❌ ' + msg;
 }
+function hideError() { document.getElementById('errorBox').style.display = 'none'; }
 
-function hideError() {
-  document.getElementById('errorBox').style.display = 'none';
-}
-
-// ── LOAD SHEET LIST ─────────────────────────────────────────
-async function loadSheetNames() {
-  const data = await apiFetch('?fields=sheets.properties.title');
-  return data.sheets
-    .map(s => s.properties.title)
-    .filter(n => !EXCLUDE_SHEETS.includes(n));
-}
-
-// ── LOAD DASHBOARD SHEET ────────────────────────────────────
+// ── LOAD DASHBOARD ───────────────────────────────────────────
 async function loadDashboard() {
-  const data = await apiFetch('/values/Dashboard?majorDimension=ROWS');
-  const rows = data.values || [];
+  const { cols, rows } = await fetchSheet('Dashboard');
 
-  // Row index 2 = header row, index 3+ = employee data
-  const headerRow = rows[2] || [];
-
-  // Build headers: skip col 0 (employee name), find non-empty cols
-  const headers = [];
-  for (let c = 1; c < headerRow.length; c++) {
-    const h = String(headerRow[c] || '').replace(/\n/g,' ').trim();
-    if (h) headers.push({ col: c, name: h });
-  }
+  // cols[0] = Employee, cols[1..n] = tool names, last = Total
+  // Skip first col (employee) and last col (total)
+  const headers = cols.slice(1, cols.length - 1).filter(h => h.trim());
 
   const employees = [];
-  for (let r = 3; r < rows.length; r++) {
-    const name = String(rows[r][0] || '').trim();
-    if (!name || name.startsWith('รวม') || name.startsWith('ที่ใช้')) break;
-    const vals = headers.map(h => {
-      const v = (rows[r] || [])[h.col];
-      return v !== undefined && v !== '' ? (Number(v) || 0) : 0;
-    });
+  for (const row of rows) {
+    const name = String(row[0] || '').trim();
+    if (!name || name.startsWith('รวม')) break;
+    const vals = headers.map((_, i) => Number(row[i + 1]) || 0);
     employees.push({ name, vals });
   }
 
-  // Total row
-  const totalRow = rows.find(r => String(r[0]).startsWith('รวมทั้งหมด')) || [];
-  const totals = headers.map(h => Number((totalRow)[h.col]) || 0);
+  const totalRow = rows.find(r => String(r[0] || '').startsWith('รวมทั้งหมด')) || [];
+  const totals = headers.map((_, i) => Number(totalRow[i + 1]) || 0);
 
-  return { headers: headers.map(h => h.name), employees, totals };
+  return { headers, employees, totals };
 }
 
-// ── LOAD TOOL DETAIL SHEET ───────────────────────────────────
+// ── LOAD TOOL DETAIL ─────────────────────────────────────────
 async function loadToolDetail(sheetName) {
-  const encoded = encodeURIComponent(sheetName);
-  const data = await apiFetch(`/values/${encoded}?majorDimension=ROWS`);
-  const rows = data.values || [];
-
+  const { rows } = await fetchSheet(sheetName);
   const result = [];
-  // Data starts at row index 3 (after title, note, header)
-  for (let r = 3; r < rows.length; r++) {
-    const row = rows[r] || [];
-    const no     = cellVal(row[0]);
-    const type   = String(cellVal(row[1]) || '').trim();
-    const brand  = String(cellVal(row[2]) || '').trim();
-    const model  = String(cellVal(row[3]) || '').trim();
-    const serial = String(cellVal(row[4]) || '').trim();
-    const user   = String(cellVal(row[5]) || '').trim();
-    const amt    = cellVal(row[6]);
-    const remark = String(cellVal(row[7]) || '').trim();
+
+  // gviz returns data rows only (no title/header rows) — row 0 = first data row
+  // Our sheets: row 0=title, 1=note, 2=header, 3+=data → skip first 3
+  const dataRows = rows.slice(3);
+
+  for (const row of dataRows) {
+    const no     = String(row[0] || '').trim();
+    const type   = String(row[1] || '').trim();
+    const brand  = String(row[2] || '').trim();
+    const model  = String(row[3] || '').trim();
+    const serial = String(row[4] || '').trim();
+    const user   = String(row[5] || '').trim();
+    const amt    = row[6];
+    const remark = String(row[7] || '').trim();
 
     if (!user && !no) continue;
     result.push({
       no, type, brand, model, serial, user,
-      amount: amt !== '' ? Number(amt) : '',
+      amount: (amt !== '' && amt !== null) ? Number(amt) : '',
       remark
     });
   }
@@ -283,19 +279,13 @@ async function loadAll() {
   hideError();
 
   try {
-    // 1. Get sheet names
-    state.sheetNames = await loadSheetNames();
-
-    // 2. Load dashboard + all tool details in parallel
     const [dashboard, ...detailResults] = await Promise.all([
       loadDashboard(),
-      ...state.sheetNames.map(n => loadToolDetail(n))
+      ...TOOL_SHEETS.map(n => loadToolDetail(n).catch(() => []))
     ]);
 
     state.dashboard = dashboard;
-    state.sheetNames.forEach((name, i) => {
-      state.details[name] = detailResults[i];
-    });
+    TOOL_SHEETS.forEach((name, i) => { state.details[name] = detailResults[i]; });
 
     document.getElementById('lastUpdate').textContent =
       'Updated: ' + new Date().toLocaleTimeString('th-TH');
@@ -310,6 +300,21 @@ async function loadAll() {
     document.getElementById('loadingScreen').classList.add('hidden');
     document.getElementById('refreshBtn').classList.remove('spinning');
   }
+}
+
+// ── BUILD FILTER TABS ────────────────────────────────────────
+function buildFilterRow() {
+  const row = document.getElementById('filterRow');
+  row.innerHTML =
+    `<button class="filter-btn active" data-sheet="all">All</button>` +
+    TOOL_SHEETS.map(n =>
+      `<button class="filter-btn" data-sheet="${n.replace(/"/g,'&quot;')}">${n}</button>`
+    ).join('');
+  row.onclick = e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    setFilter(btn.dataset.sheet, btn);
+  };
 }
 
 // ── BUILD FILTER TABS ────────────────────────────────────────
@@ -422,4 +427,3 @@ loadAll();
 </script>
 </body>
 </html>
-
