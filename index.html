@@ -781,7 +781,7 @@
         </section>
         <section id="loanDetail" class="panel loanDetail" hidden>
           <div class="registerHead"><div><p class="eyebrow">ASSIGNED ITEMS</p><h2 id="loanDetailTitle">Employee equipment</h2></div></div>
-          <div class="tableWrap"><table class="register"><thead><tr><th>Instrument</th><th>Brand / Model</th><th>Serial No.</th><th>Condition</th><th>Calibration due</th></tr></thead><tbody id="loanDetailBody"></tbody></table></div>
+          <div class="tableWrap"><table class="register"><thead><tr><th>Instrument</th><th>Brand / Model</th><th>Serial No.</th><th>Overall status</th><th>Calibration due</th></tr></thead><tbody id="loanDetailBody"></tbody></table></div>
         </section>
       </section>
       <section id="registerView" class="view" hidden>
@@ -868,7 +868,7 @@
                 <th>Serial No.</th>
                 <th>Custodian</th>
                 <th>Calibration due</th>
-                <th>Status</th>
+                <th>Overall status</th>
               </tr>
             </thead>
             <tbody id="registerBody"></tbody>
@@ -942,6 +942,25 @@
         if (days <= 30) return { key: "urgent", text: `${days} days left` };
         if (days <= 90) return { key: "soon", text: `${days} days left` };
         return { key: "ok", text: "Valid" };
+      }
+      function overallStatus(x) {
+        const condition = clean(x.condition).toLowerCase();
+        const cal = state(x.next);
+        if (condition.includes("damaged"))
+          return { key: "damaged", text: "⚠ DAMAGED — DO NOT USE", blocked: true };
+        if (condition.includes("retired"))
+          return { key: "damaged", text: "RETIRED — DO NOT USE", blocked: true };
+        if (condition.includes("under repair"))
+          return { key: "overdue", text: "UNDER REPAIR — DO NOT USE", blocked: true };
+        if (condition.includes("sent for calibration"))
+          return { key: "urgent", text: "SENT FOR CALIBRATION", blocked: true };
+        if (cal.key === "overdue")
+          return { key: "overdue", text: "CALIBRATION OVERDUE — DO NOT USE", blocked: true };
+        if (cal.key === "urgent" || cal.key === "soon")
+          return { key: cal.key, text: `CALIBRATION ${cal.text.toUpperCase()}`, blocked: false };
+        if (cal.key === "missing")
+          return { key: "missing", text: "NO CALIBRATION RECORD", blocked: false };
+        return { key: "ok", text: "READY & CALIBRATED", blocked: false };
       }
       function fetchSheet(name) {
         return new Promise((resolve, reject) => {
@@ -1155,7 +1174,8 @@
         document.querySelector("#loanDetailTitle").textContent = `${selectedCustodian} · ${rows.length} items`;
         document.querySelector("#loanDetailBody").innerHTML = rows.map((x) => {
           const d = damaged(x), s = state(x.next);
-          return `<tr class="${d ? "damagedRow" : ""}"><td><div class="item"><span class="toolIcon">${d ? "⚠" : "⌖"}</span><div><b>${esc(x.name)}</b><small>${esc(x.id)}</small></div></div></td><td data-label="Brand / Model"><b>${esc(x.brand)}</b><small>${esc(x.model)}</small></td><td data-label="Serial No."><code>${esc(x.serial || "—")}</code></td><td data-label="Condition"><span class="status ${d ? "damaged" : "ok"}">${d ? "⚠ DAMAGED — DO NOT USE" : esc(x.condition)}</span></td><td data-label="Calibration due"><b>${esc(x.next || "—")}</b><small>${esc(s.text)}</small>${/^https?:\/\//i.test(x.certificate) ? `<a class="certificate" href="${esc(x.certificate)}" target="_blank" rel="noopener">View certificate ↗</a>` : ""}</td></tr>`;
+          const overall = overallStatus(x);
+          return `<tr class="${overall.blocked ? "damagedRow" : ""}"><td><div class="item"><span class="toolIcon">${overall.blocked ? "⚠" : "⌖"}</span><div><b>${esc(x.name)}</b><small>${esc(x.id)}</small></div></div></td><td data-label="Brand / Model"><b>${esc(x.brand)}</b><small>${esc(x.model)}</small></td><td data-label="Serial No."><code>${esc(x.serial || "—")}</code></td><td data-label="Overall status"><span class="status ${overall.key}">${esc(overall.text)}</span><small>Physical condition: ${esc(x.condition)}</small></td><td data-label="Calibration due"><b>${esc(x.next || "—")}</b><small>${esc(s.text)}</small>${/^https?:\/\//i.test(x.certificate) ? `<a class="certificate" href="${esc(x.certificate)}" target="_blank" rel="noopener">View certificate ↗</a>` : ""}</td></tr>`;
         }).join("");
       }
       function setView(view) {
@@ -1176,8 +1196,9 @@
         document.querySelector("#registerBody").innerHTML = rows
           .map((x) => {
             const d = damaged(x),
-              s = state(x.next);
-            return `<tr class="${d ? "damagedRow" : ""}"><td><div class="item"><span class="toolIcon">${d ? "⚠" : "⌖"}</span><div><b>${esc(x.name)}</b><small>${esc(x.id)} · ${esc(x.category)}</small></div></div></td><td data-label="Brand / Model"><b>${esc(x.brand)}</b><small>${esc(x.model)}</small></td><td data-label="Serial No."><code>${esc(x.serial || "—")}</code></td><td data-label="Custodian"><b>${esc(x.custodian || "—")}</b><small>${esc(x.location)}</small></td><td data-label="Calibration due">${d ? '<b class="doNotUse">Not permitted for use</b>' : ""}<b>${esc(x.next || "—")}</b><small>${x.last ? `Last calibrated ${esc(x.last)}` : "No calibration record"}</small>${/^https?:\/\//i.test(x.certificate) ? `<a class="certificate" href="${esc(x.certificate)}" target="_blank" rel="noopener">View certificate ↗</a>` : ""}</td><td data-label="Status"><span class="status ${d ? "damaged" : s.key}">${d ? "⚠ DAMAGED — DO NOT USE" : esc(s.text)}</span>${x.remark ? `<small>${esc(x.remark)}</small>` : ""}</td></tr>`;
+              s = state(x.next),
+              overall = overallStatus(x);
+            return `<tr class="${overall.blocked ? "damagedRow" : ""}"><td><div class="item"><span class="toolIcon">${overall.blocked ? "⚠" : "⌖"}</span><div><b>${esc(x.name)}</b><small>${esc(x.id)} · ${esc(x.category)}</small></div></div></td><td data-label="Brand / Model"><b>${esc(x.brand)}</b><small>${esc(x.model)}</small></td><td data-label="Serial No."><code>${esc(x.serial || "—")}</code></td><td data-label="Custodian"><b>${esc(x.custodian || "—")}</b><small>${esc(x.location)}</small></td><td data-label="Calibration due">${overall.blocked ? '<b class="doNotUse">Not permitted for use</b>' : ""}<b>${esc(x.next || "—")}</b><small>${x.last ? `Last calibrated ${esc(x.last)}` : "No calibration record"}</small>${/^https?:\/\//i.test(x.certificate) ? `<a class="certificate" href="${esc(x.certificate)}" target="_blank" rel="noopener">View certificate ↗</a>` : ""}</td><td data-label="Overall status"><span class="status ${overall.key}">${esc(overall.text)}</span><small>Physical condition: ${esc(x.condition)}</small>${x.remark ? `<small>${esc(x.remark)}</small>` : ""}</td></tr>`;
           })
           .join("");
         document.querySelector("#empty").hidden = !!rows.length;
