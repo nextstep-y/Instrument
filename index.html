@@ -118,6 +118,40 @@
       .refresh:disabled {
         opacity: 0.55;
       }
+      .viewNav {
+        max-width: 1224px;
+        margin: 22px auto 0;
+        padding: 0 28px;
+        display: flex;
+        gap: 8px;
+      }
+      .viewNav button {
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 11px 17px;
+        min-height: 44px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .viewNav button.active {
+        background: var(--green);
+        border-color: var(--green);
+        color: #fff;
+      }
+      .view[hidden] { display: none; }
+      .loanHero { padding-bottom: 22px; }
+      .loanStats { grid-template-columns: repeat(4, 1fr); }
+      .employeeRow { cursor: pointer; }
+      .employeeRow:hover { background: #f1f7f4; }
+      .employeeRow.selected { background: #e8f4ee; box-shadow: inset 4px 0 0 var(--green); }
+      .employeeName button {
+        border: 0; background: transparent; color: var(--green); font-weight: 800;
+        cursor: pointer; padding: 0; text-align: left;
+      }
+      .loanDetail[hidden] { display: none; }
+      .detailTitle { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
       .hero {
         max-width: 1280px;
         margin: auto;
@@ -492,6 +526,9 @@
         .hero {
           padding: 34px 18px 25px;
         }
+        .viewNav { padding: 0 14px; overflow-x: auto; }
+        .viewNav button { white-space: nowrap; flex: 1 0 auto; }
+        .loanStats { grid-template-columns: repeat(2, 1fr); }
         .hero h1 {
           font-size: 42px;
           letter-spacing: -1.5px;
@@ -643,6 +680,42 @@
           ><button id="refresh" class="refresh">↻ Refresh data</button>
         </div>
       </header>
+      <nav class="viewNav" aria-label="Dashboard views">
+        <button class="active" data-view="loans">Equipment loan summary</button>
+        <button data-view="register">Full instrument register</button>
+      </nav>
+      <div id="error" class="error"></div>
+      <section id="loansView" class="view">
+        <section class="hero loanHero">
+          <div>
+            <p class="eyebrow">EQUIPMENT LOAN CONTROL</p>
+            <h1>Who holds<br /><em>each item</em></h1>
+            <p class="lead">Live custodian summary calculated from every equipment tab in Google Sheets.</p>
+          </div>
+        </section>
+        <section class="stats loanStats">
+          <article><span>Assigned items</span><strong id="assigned">–</strong><small>Currently held</small></article>
+          <article><span>Custodians</span><strong id="custodians">–</strong><small>People with equipment</small></article>
+          <article><span>Unassigned items</span><strong id="unassigned">–</strong><small>Custodian is blank</small></article>
+          <article class="damaged"><span>⚠ Damaged assigned</span><strong id="loanDamaged">–</strong><small>Do not use</small></article>
+        </section>
+        <section class="panel">
+          <div class="registerHead">
+            <div><p class="eyebrow">BREAKDOWN BY EMPLOYEE</p><h2>Equipment loan summary</h2></div>
+            <label class="search">⌕<input id="employeeSearch" placeholder="Search employee…" /></label>
+          </div>
+          <div class="tableWrap">
+            <table class="loanMatrix"><thead id="loanHead"></thead><tbody id="loanBody"></tbody></table>
+            <div id="loanEmpty" class="empty" hidden>No custodians match your search.</div>
+          </div>
+          <footer class="foot"><span id="loanShowing"></span><span>Select an employee to view their items</span></footer>
+        </section>
+        <section id="loanDetail" class="panel loanDetail" hidden>
+          <div class="registerHead"><div><p class="eyebrow">ASSIGNED ITEMS</p><h2 id="loanDetailTitle">Employee equipment</h2></div></div>
+          <div class="tableWrap"><table class="register"><thead><tr><th>Instrument</th><th>Brand / Model</th><th>Serial No.</th><th>Condition</th><th>Calibration due</th></tr></thead><tbody id="loanDetailBody"></tbody></table></div>
+        </section>
+      </section>
+      <section id="registerView" class="view" hidden>
       <section class="hero">
         <div>
           <p class="eyebrow">INSTRUMENT CONTROL CENTER</p>
@@ -680,7 +753,6 @@
           ><small>Review required</small>
         </article>
       </section>
-      <div id="error" class="error"></div>
       <section class="panel">
         <div class="panelHead">
           <div>
@@ -741,6 +813,7 @@
           ><span>Alert threshold: 90 days before expiry</span>
         </footer>
       </section>
+      </section>
     </main>
     <script>
       const SHEET_ID = "1m7s0JDQIPmouRrFZRE2a4Dcc_XVW-LsJKUrgzkkdKUY",
@@ -764,6 +837,8 @@
         ];
       let items = [],
         active = "All",
+        activeView = "loans",
+        selectedCustodian = "",
         callbackId = 0;
       const clean = (v) => String(v ?? "").trim(),
         damaged = (x) => clean(x.condition).toLowerCase().includes("damaged");
@@ -938,6 +1013,7 @@
           document.querySelector(`#${k}`).textContent = counts[k];
         document.querySelector("#attention").textContent =
           counts.overdue + counts.soon;
+        renderLoans();
         const map = new Map();
         for (const x of items) {
           const r = map.get(x.name) || {
@@ -974,6 +1050,51 @@
           .join("");
         renderRegister();
       }
+      function renderLoans() {
+        const assignedItems = items.filter((x) => clean(x.custodian));
+        const unassignedItems = items.filter((x) => !clean(x.custodian));
+        const types = [...new Set(assignedItems.map((x) => label(x.name)))].sort((a, b) => a.localeCompare(b));
+        const people = new Map();
+        for (const x of assignedItems) {
+          const name = clean(x.custodian);
+          const person = people.get(name) || { name, total: 0, damaged: 0, counts: {} };
+          const type = label(x.name);
+          person.total++;
+          person.counts[type] = (person.counts[type] || 0) + 1;
+          if (damaged(x)) person.damaged++;
+          people.set(name, person);
+        }
+        const rows = [...people.values()].sort((a, b) => a.name.localeCompare(b.name));
+        document.querySelector("#assigned").textContent = assignedItems.length;
+        document.querySelector("#custodians").textContent = rows.length;
+        document.querySelector("#unassigned").textContent = unassignedItems.length;
+        document.querySelector("#loanDamaged").textContent = assignedItems.filter(damaged).length;
+        document.querySelector("#loanHead").innerHTML = `<tr><th>Employee / Custodian</th>${types.map((t) => `<th>${esc(t)}</th>`).join("")}<th>Total</th><th>Damaged</th></tr>`;
+        const q = document.querySelector("#employeeSearch").value.toLowerCase();
+        const visible = rows.filter((p) => p.name.toLowerCase().includes(q));
+        document.querySelector("#loanBody").innerHTML = visible.map((p) => `<tr class="employeeRow ${p.name === selectedCustodian ? "selected" : ""}" data-person="${esc(p.name)}"><td class="employeeName"><button data-person="${esc(p.name)}">${esc(p.name)}</button></td>${types.map((t) => `<td data-label="${esc(t)}"><span class="value ${p.counts[t] ? "totalValue" : "quiet"}">${p.counts[t] || "–"}</span></td>`).join("")}<td data-label="Total"><span class="value totalValue">${p.total}</span></td><td data-label="Damaged"><span class="value ${p.damaged ? "damageValue" : "quiet"}">${p.damaged}</span></td></tr>`).join("");
+        document.querySelector("#loanEmpty").hidden = !!visible.length;
+        document.querySelector("#loanShowing").textContent = `Showing ${visible.length} of ${rows.length} custodians · ${assignedItems.length} assigned items`;
+        if (selectedCustodian && !people.has(selectedCustodian)) selectedCustodian = "";
+        renderLoanDetail();
+      }
+      function renderLoanDetail() {
+        const panel = document.querySelector("#loanDetail");
+        if (!selectedCustodian) { panel.hidden = true; return; }
+        const rows = items.filter((x) => x.custodian === selectedCustodian);
+        panel.hidden = false;
+        document.querySelector("#loanDetailTitle").textContent = `${selectedCustodian} · ${rows.length} items`;
+        document.querySelector("#loanDetailBody").innerHTML = rows.map((x) => {
+          const d = damaged(x), s = state(x.next);
+          return `<tr class="${d ? "damagedRow" : ""}"><td><div class="item"><span class="toolIcon">${d ? "⚠" : "⌖"}</span><div><b>${esc(x.name)}</b><small>${esc(x.id)}</small></div></div></td><td data-label="Brand / Model"><b>${esc(x.brand)}</b><small>${esc(x.model)}</small></td><td data-label="Serial No."><code>${esc(x.serial || "—")}</code></td><td data-label="Condition"><span class="status ${d ? "damaged" : "ok"}">${d ? "⚠ DAMAGED — DO NOT USE" : esc(x.condition)}</span></td><td data-label="Calibration due"><b>${esc(x.next || "—")}</b><small>${esc(s.text)}</small>${/^https?:\/\//i.test(x.certificate) ? `<a class="certificate" href="${esc(x.certificate)}" target="_blank" rel="noopener">View certificate ↗</a>` : ""}</td></tr>`;
+        }).join("");
+      }
+      function setView(view) {
+        activeView = view;
+        document.querySelector("#loansView").hidden = view !== "loans";
+        document.querySelector("#registerView").hidden = view !== "register";
+        document.querySelectorAll(".viewNav button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
+      }
       function renderRegister() {
         const q = document.querySelector("#search").value.toLowerCase(),
           rows = items
@@ -1009,6 +1130,18 @@
       }
       document.querySelector("#refresh").onclick = load;
       document.querySelector("#search").oninput = renderRegister;
+      document.querySelector("#employeeSearch").oninput = renderLoans;
+      document.querySelector(".viewNav").onclick = (e) => {
+        const view = e.target.dataset.view;
+        if (view) setView(view);
+      };
+      document.querySelector("#loanBody").onclick = (e) => {
+        const row = e.target.closest("[data-person]");
+        if (!row) return;
+        selectedCustodian = row.dataset.person;
+        renderLoans();
+        document.querySelector("#loanDetail").scrollIntoView({ behavior: "smooth", block: "start" });
+      };
       document.querySelector("#tabs").onclick = (e) => {
         if (e.target.dataset.cat) {
           active = e.target.dataset.cat;
