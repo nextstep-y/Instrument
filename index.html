@@ -142,7 +142,12 @@
       }
       .view[hidden] { display: none; }
       .loanHero { padding-bottom: 22px; }
-      .loanStats { grid-template-columns: repeat(4, 1fr); }
+      .loanStats { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+      .availabilityTable { min-width: 1040px; }
+      .availabilityTable th:not(:first-child),
+      .availabilityTable td:not(:first-child) { text-align: center; }
+      .availabilityTable td.custodianList { text-align: left; min-width: 260px; color: var(--muted); }
+      .availableValue { background: #d9f3e4; color: #17663f; }
       .employeeRow { cursor: pointer; }
       .employeeRow:hover { background: #f1f7f4; }
       .employeeRow.selected { background: #e8f4ee; box-shadow: inset 4px 0 0 var(--green); }
@@ -763,10 +768,24 @@
           </div>
         </section>
         <section class="stats loanStats">
+          <article><span>Total equipment</span><strong id="loanTotal">–</strong><small>All registered items</small></article>
           <article><span>Assigned items</span><strong id="assigned">–</strong><small>Currently held</small></article>
           <article><span>Custodians</span><strong id="custodians">–</strong><small>People with equipment</small></article>
           <article><span>Unassigned items</span><strong id="unassigned">–</strong><small>Custodian is blank</small></article>
+          <article><span>Available now</span><strong id="availableNow">–</strong><small>Ready and unassigned</small></article>
           <article class="damaged"><span>⚠ Damaged assigned</span><strong id="loanDamaged">–</strong><small>Do not use</small></article>
+        </section>
+        <section class="panel">
+          <div class="panelHead">
+            <div><p class="eyebrow">AVAILABILITY BY EQUIPMENT TYPE</p><h2>What can be used now</h2><p>Available now means no custodian, ready for use, and calibration is not overdue.</p></div>
+            <span class="legend">Live from 16 equipment sheets</span>
+          </div>
+          <div class="tableWrap">
+            <table class="summary availabilityTable">
+              <thead><tr><th>Equipment type</th><th>Total</th><th>In custody</th><th>Available now</th><th>Not available</th><th>Calibration action</th><th>Custodians</th></tr></thead>
+              <tbody id="availabilityBody"></tbody>
+            </table>
+          </div>
         </section>
         <section class="panel">
           <div class="registerHead">
@@ -886,7 +905,7 @@
     </main>
     <script>
       const SHEET_ID = "1m7s0JDQIPmouRrFZRE2a4Dcc_XVW-LsJKUrgzkkdKUY",
-        SHEETS = [
+        SOURCE_SHEETS = [
           "TOTAL STATION",
           "AUTOMATIC LEVEL",
           "Single Prism Set",
@@ -903,7 +922,8 @@
           "Umbrella",
           "Safety harness",
           "Bipod",
-        ];
+        ],
+        SHEETS = ["Web Data"];
       let items = [],
         active = "All",
         activeView = "loans",
@@ -922,6 +942,27 @@
         if (/gnss receiver/i.test(n)) return "GNSS / GPS";
         if (/^single prism set$/i.test(n)) return "Single Prism";
         return n;
+      }
+      function equipmentGroup(source, type) {
+        const names = {
+          "TOTAL STATION": "Total Station",
+          "AUTOMATIC LEVEL": "Automatic Level",
+          "Single Prism Set": "Single Prism",
+          "Mini Prism ": "Mini Prism",
+          "Aluminium Tripod": "Aluminium Tripod",
+          USB: "USB",
+          "Measure Tape (5m.)": "Measure Tape (5m)",
+          "Measure Tape (10m.)": "Measure Tape (10m)",
+          "Measure Tape (50m.)": "Measure Tape (50m)",
+          GPS: "GNSS / GPS",
+          "Walkie Talkie": "Walkie Talkie",
+          "Total Station Battery": "Total Station Battery",
+          Calculator: "Calculator",
+          Umbrella: "Umbrella",
+          "Safety harness": "Safety Harness",
+          Bipod: "Bipod",
+        };
+        return names[source] || label(type);
       }
       function iso(v) {
         if (!v) return "";
@@ -984,7 +1025,7 @@
               ),
             );
           script.onerror = () => done(new Error(`Cannot load ${name}`));
-          script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&headers=0&sheet=${encodeURIComponent(name)}`;
+          script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb};reqId:${Date.now()}&headers=0&range=A1:O500&tq=${encodeURIComponent("select *")}&sheet=${encodeURIComponent(name)}`;
           document.head.appendChild(script);
         });
       }
@@ -1000,7 +1041,9 @@
             })),
           );
           let seq = 0,
-            next = [];
+            next = [],
+            seenSerials = new Set(),
+            seenRows = new Set();
           for (const set of sets) {
             const headerIndex = set.rows.findIndex((row) => {
               const cells = row.map((x) => clean(x).toLowerCase());
@@ -1022,6 +1065,8 @@
               return i < 0 ? fallback : i;
             };
             const ix = {
+              source: pos(["source sheet"], -1),
+              no: pos(["no.", "no"], 0),
               type: pos(["type", "ประเภท"], 1),
               brand: pos(["brand", "ยี่ห้อ"], 2),
               model: pos(["model", "รุ่น"], 3),
@@ -1039,6 +1084,11 @@
               next: pos(["next calibration", "กำหนดสอบเทียบครั้งถัดไป"], 12),
               cert: pos(["certificate link", "ใบรับรอง"], 13),
             };
+            if (set.name === "Web Data") Object.assign(ix, {
+              source: 0, no: 1, type: 2, brand: 3, model: 4, serial: 5,
+              user: 6, amount: 7, remark: 8, asset: 9, location: 10,
+              condition: 11, last: 12, next: 13, cert: 14,
+            });
             for (const row of set.rows.slice(headerIndex + 1)) {
               const type = clean(row[ix.type]),
                 serial = clean(row[ix.serial]),
@@ -1049,14 +1099,27 @@
                 (!serial && /^\(|ชื่อพนักงาน/i.test(user))
               )
                 continue;
-              const amount = Math.max(1, Number(row[ix.amount]) || 1);
+              const source = ix.source >= 0 ? clean(row[ix.source]) : set.name;
+              const rowNo = clean(row[ix.no]);
+              const rowKey = rowNo ? `${source}|${rowNo}`.toLowerCase() : "";
+              if (set.name === "Web Data" && rowKey && seenRows.has(rowKey)) continue;
+              if (rowKey) seenRows.add(rowKey);
+              const serialKey = serial ? `${source}|${serial}`.toLowerCase() : "";
+              if (serialKey && seenSerials.has(serialKey)) continue;
+              if (serialKey) seenSerials.add(serialKey);
+              const amountText = clean(row[ix.amount]);
+              const parsedAmount = Number(amountText);
+              const amount = amountText !== "" && Number.isFinite(parsedAmount)
+                ? Math.max(0, parsedAmount)
+                : 1;
               for (let n = 0; n < amount; n++) {
                 seq++;
                 next.push({
                   id:
                     clean(row[ix.asset]) ||
                     `EQ-${String(seq).padStart(3, "0")}`,
-                  category: categoryFor(set.name),
+                  category: categoryFor(source),
+                  group: equipmentGroup(source, type),
                   name: type,
                   brand: clean(row[ix.brand]) || "—",
                   model: clean(row[ix.model]) || "—",
@@ -1141,12 +1204,12 @@
       function renderLoans() {
         const assignedItems = items.filter((x) => clean(x.custodian));
         const unassignedItems = items.filter((x) => !clean(x.custodian));
-        const types = [...new Set(assignedItems.map((x) => label(x.name)))].sort((a, b) => a.localeCompare(b));
+        const types = [...new Set(assignedItems.map((x) => x.group))].sort((a, b) => a.localeCompare(b));
         const people = new Map();
         for (const x of assignedItems) {
           const name = clean(x.custodian);
           const person = people.get(name) || { name, total: 0, damaged: 0, counts: {} };
-          const type = label(x.name);
+          const type = x.group;
           person.total++;
           person.counts[type] = (person.counts[type] || 0) + 1;
           if (damaged(x)) person.damaged++;
@@ -1154,9 +1217,12 @@
         }
         const rows = [...people.values()].sort((a, b) => a.name.localeCompare(b.name));
         document.querySelector("#assigned").textContent = assignedItems.length;
+        document.querySelector("#loanTotal").textContent = items.length;
         document.querySelector("#custodians").textContent = rows.length;
         document.querySelector("#unassigned").textContent = unassignedItems.length;
+        document.querySelector("#availableNow").textContent = items.filter(isAvailableNow).length;
         document.querySelector("#loanDamaged").textContent = assignedItems.filter(damaged).length;
+        renderAvailability();
         document.querySelector("#loanHead").innerHTML = `<tr><th>Employee / Custodian</th>${types.map((t) => `<th>${esc(t)}</th>`).join("")}<th>Total</th><th>Damaged</th></tr>`;
         const q = document.querySelector("#employeeSearch").value.toLowerCase();
         const visible = rows.filter((p) => p.name.toLowerCase().includes(q));
@@ -1165,6 +1231,26 @@
         document.querySelector("#loanShowing").textContent = `Showing ${visible.length} of ${rows.length} custodians · ${assignedItems.length} assigned items`;
         if (selectedCustodian && !people.has(selectedCustodian)) selectedCustodian = "";
         renderLoanDetail();
+      }
+      function isAvailableNow(x) {
+        return !clean(x.custodian) && !overallStatus(x).blocked;
+      }
+      function renderAvailability() {
+        const map = new Map(SOURCE_SHEETS.map((source) => [equipmentGroup(source, source), {
+          name: equipmentGroup(source, source), total: 0, assigned: 0, available: 0,
+          calibration: 0, custodians: new Set(),
+        }]));
+        for (const x of items) {
+          const r = map.get(x.group) || { name: x.group, total: 0, assigned: 0, available: 0, calibration: 0, custodians: new Set() };
+          r.total++;
+          if (clean(x.custodian)) { r.assigned++; r.custodians.add(clean(x.custodian)); }
+          if (isAvailableNow(x)) r.available++;
+          if (state(x.next).key === "overdue") r.calibration++;
+          map.set(x.group, r);
+        }
+        document.querySelector("#availabilityBody").innerHTML = [...map.values()].map((r) =>
+          `<tr><td><b>${esc(r.name)}</b></td><td data-label="Total"><span class="value totalValue">${r.total}</span></td><td data-label="In custody"><span class="value ${r.assigned ? "totalValue" : "quiet"}">${r.assigned}</span></td><td data-label="Available now"><span class="value ${r.available ? "availableValue" : "quiet"}">${r.available}</span></td><td data-label="Not available"><span class="value ${r.total - r.available ? "missingValue" : "quiet"}">${r.total - r.available}</span></td><td data-label="Calibration action"><span class="value ${r.calibration ? "actionValue" : "quiet"}">${r.calibration}</span></td><td class="custodianList" data-label="Custodians">${esc([...r.custodians].sort((a,b) => a.localeCompare(b)).join(", ") || "—")}</td></tr>`
+        ).join("");
       }
       function renderLoanDetail() {
         const panel = document.querySelector("#loanDetail");
