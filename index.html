@@ -755,23 +755,23 @@
         </div>
       </header>
       <nav class="viewNav" aria-label="Dashboard views">
-        <button class="active" data-view="loans">Equipment loan summary</button>
+        <button class="active" data-view="loans">Equipment by User</button>
         <button data-view="register">Full instrument register</button>
       </nav>
       <div id="error" class="error"></div>
       <section id="loansView" class="view">
         <section class="hero loanHero">
           <div>
-            <p class="eyebrow">EQUIPMENT LOAN CONTROL</p>
-            <h1>Equipment overview</h1>
-            <p class="lead">Live custodian summary calculated from every equipment tab in Google Sheets.</p>
+            <p class="eyebrow">EQUIPMENT BY USER</p>
+            <h1>Equipment by User</h1>
+            <p class="lead">Shows who is currently using or responsible for each item, calculated live from Google Sheets.</p>
           </div>
         </section>
         <section class="stats loanStats">
           <article><span>Total equipment</span><strong id="loanTotal">–</strong><small>All registered items</small></article>
           <article><span>Assigned items</span><strong id="assigned">–</strong><small>Currently held</small></article>
-          <article><span>Custodians</span><strong id="custodians">–</strong><small>People with equipment</small></article>
-          <article><span>Unassigned items</span><strong id="unassigned">–</strong><small>Custodian is blank</small></article>
+          <article><span>Users</span><strong id="custodians">–</strong><small>People with equipment</small></article>
+          <article><span>Unassigned items</span><strong id="unassigned">–</strong><small>User is blank</small></article>
           <article><span>Available now</span><strong id="availableNow">–</strong><small>Ready and unassigned</small></article>
           <article class="damaged"><span>⚠ Damaged assigned</span><strong id="loanDamaged">–</strong><small>Do not use</small></article>
         </section>
@@ -782,24 +782,24 @@
           </div>
           <div class="tableWrap">
             <table class="summary availabilityTable">
-              <thead><tr><th>Equipment type</th><th>Total</th><th>In custody</th><th>Available now</th><th>Not available</th><th>Calibration action</th><th>Custodians</th></tr></thead>
+              <thead><tr><th>Equipment type</th><th>Total</th><th>With user</th><th>Available now</th><th>Not available</th><th>Calibration action</th><th>Users</th></tr></thead>
               <tbody id="availabilityBody"></tbody>
             </table>
           </div>
         </section>
         <section class="panel">
           <div class="registerHead">
-            <div><p class="eyebrow">BREAKDOWN BY EMPLOYEE</p><h2>Equipment loan summary</h2></div>
-            <label class="search">⌕<input id="employeeSearch" placeholder="Search employee…" /></label>
+            <div><p class="eyebrow">BREAKDOWN BY USER</p><h2>Equipment by User</h2></div>
+            <label class="search">⌕<input id="employeeSearch" placeholder="Search user…" /></label>
           </div>
           <div class="tableWrap">
             <table class="loanMatrix"><thead id="loanHead"></thead><tbody id="loanBody"></tbody></table>
-            <div id="loanEmpty" class="empty" hidden>No custodians match your search.</div>
+            <div id="loanEmpty" class="empty" hidden>No users match your search.</div>
           </div>
-          <footer class="foot"><span id="loanShowing"></span><span>Select an employee to view their items</span></footer>
+          <footer class="foot"><span id="loanShowing"></span><span>Select a user to view their items</span></footer>
         </section>
         <section id="loanDetail" class="panel loanDetail" hidden>
-          <div class="registerHead"><div><p class="eyebrow">ASSIGNED ITEMS</p><h2 id="loanDetailTitle">Employee equipment</h2></div></div>
+          <div class="registerHead"><div><p class="eyebrow">ASSIGNED ITEMS</p><h2 id="loanDetailTitle">User equipment</h2></div></div>
           <div class="tableWrap"><table class="register"><thead><tr><th>Instrument</th><th>Brand / Model</th><th>Serial No.</th><th>Overall status</th><th>Calibration due</th></tr></thead><tbody id="loanDetailBody"></tbody></table></div>
         </section>
       </section>
@@ -1223,12 +1223,12 @@
         document.querySelector("#availableNow").textContent = items.filter(isAvailableNow).length;
         document.querySelector("#loanDamaged").textContent = assignedItems.filter(damaged).length;
         renderAvailability();
-        document.querySelector("#loanHead").innerHTML = `<tr><th>Employee / Custodian</th>${types.map((t) => `<th>${esc(t)}</th>`).join("")}<th>Total</th><th>Damaged</th></tr>`;
+        document.querySelector("#loanHead").innerHTML = `<tr><th>User</th>${types.map((t) => `<th>${esc(t)}</th>`).join("")}<th>Total</th><th>Damaged</th></tr>`;
         const q = document.querySelector("#employeeSearch").value.toLowerCase();
         const visible = rows.filter((p) => p.name.toLowerCase().includes(q));
         document.querySelector("#loanBody").innerHTML = visible.map((p) => `<tr class="employeeRow ${p.name === selectedCustodian ? "selected" : ""}" data-person="${esc(p.name)}"><td class="employeeName"><button data-person="${esc(p.name)}">${esc(p.name)}</button></td>${types.map((t) => `<td data-label="${esc(t)}"><span class="value ${p.counts[t] ? "totalValue" : "quiet"}">${p.counts[t] || "–"}</span></td>`).join("")}<td data-label="Total"><span class="value totalValue">${p.total}</span></td><td data-label="Damaged"><span class="value ${p.damaged ? "damageValue" : "quiet"}">${p.damaged}</span></td></tr>`).join("");
         document.querySelector("#loanEmpty").hidden = !!visible.length;
-        document.querySelector("#loanShowing").textContent = `Showing ${visible.length} of ${rows.length} custodians · ${assignedItems.length} assigned items`;
+        document.querySelector("#loanShowing").textContent = `Showing ${visible.length} of ${rows.length} users · ${assignedItems.length} assigned items`;
         if (selectedCustodian && !people.has(selectedCustodian)) selectedCustodian = "";
         renderLoanDetail();
       }
