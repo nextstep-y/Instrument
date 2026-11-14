@@ -1192,7 +1192,12 @@
               `<tr class="${r.damaged ? "hasDamage" : ""}"><td><b>${esc(label(r.name))}</b></td><td data-label="Total"><span class="value totalValue">${r.total}</span></td><td data-label="Needs calibration"><span class="value ${r.cal ? "actionValue" : "quiet"}">${r.cal}</span></td><td data-label="Damaged"><span class="value ${r.damaged ? "damageValue" : "quiet"}">${r.damaged}</span></td><td data-label="Missing schedule"><span class="value ${r.missing ? "missingValue" : "quiet"}">${r.missing}</span></td></tr>`,
           )
           .join("");
-        const cats = ["All", ...new Set(items.map((x) => x.category))];
+        const cats = [
+          "All",
+          ...new Set(
+            SOURCE_SHEETS.map((source) => equipmentGroup(source, source)),
+          ),
+        ];
         document.querySelector("#tabs").innerHTML = cats
           .map(
             (c) =>
@@ -1275,7 +1280,7 @@
           rows = items
             .filter(
               (x) =>
-                (active === "All" || x.category === active) &&
+                (active === "All" || x.group === active) &&
                 Object.values(x).join(" ").toLowerCase().includes(q),
             )
             .sort((a, b) => Number(damaged(b)) - Number(damaged(a)));
@@ -1284,7 +1289,7 @@
             const d = damaged(x),
               s = state(x.next),
               overall = overallStatus(x);
-            return `<tr class="${overall.blocked ? "damagedRow" : ""}"><td><div class="item"><span class="toolIcon">${overall.blocked ? "⚠" : "⌖"}</span><div><b>${esc(x.name)}</b><small>${esc(x.id)} · ${esc(x.category)}</small></div></div></td><td data-label="Brand / Model"><b>${esc(x.brand)}</b><small>${esc(x.model)}</small></td><td data-label="Serial No."><code>${esc(x.serial || "—")}</code></td><td data-label="Custodian"><b>${esc(x.custodian || "—")}</b><small>${esc(x.location)}</small></td><td data-label="Calibration due">${overall.blocked ? '<b class="doNotUse">Not permitted for use</b>' : ""}<b>${esc(x.next || "—")}</b><small>${x.last ? `Last calibrated ${esc(x.last)}` : "No calibration record"}</small>${/^https?:\/\//i.test(x.certificate) ? `<a class="certificate" href="${esc(x.certificate)}" target="_blank" rel="noopener">View certificate ↗</a>` : ""}</td><td data-label="Overall status"><span class="status ${overall.key}">${esc(overall.text)}</span><small>Physical condition: ${esc(x.condition)}</small>${x.remark ? `<small>${esc(x.remark)}</small>` : ""}</td></tr>`;
+            return `<tr class="${overall.blocked ? "damagedRow" : ""}"><td><div class="item"><span class="toolIcon">${overall.blocked ? "⚠" : "⌖"}</span><div><b>${esc(x.name)}</b><small>${esc(x.id)} · ${esc(x.group)}</small></div></div></td><td data-label="Brand / Model"><b>${esc(x.brand)}</b><small>${esc(x.model)}</small></td><td data-label="Serial No."><code>${esc(x.serial || "—")}</code></td><td data-label="Custodian"><b>${esc(x.custodian || "—")}</b><small>${esc(x.location)}</small></td><td data-label="Calibration due">${overall.blocked ? '<b class="doNotUse">Not permitted for use</b>' : ""}<b>${esc(x.next || "—")}</b><small>${x.last ? `Last calibrated ${esc(x.last)}` : "No calibration record"}</small>${/^https?:\/\//i.test(x.certificate) ? `<a class="certificate" href="${esc(x.certificate)}" target="_blank" rel="noopener">View certificate ↗</a>` : ""}</td><td data-label="Overall status"><span class="status ${overall.key}">${esc(overall.text)}</span><small>Physical condition: ${esc(x.condition)}</small>${x.remark ? `<small>${esc(x.remark)}</small>` : ""}</td></tr>`;
           })
           .join("");
         document.querySelector("#empty").hidden = !!rows.length;
