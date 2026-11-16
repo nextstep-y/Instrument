@@ -738,6 +738,7 @@
           grid-column: 1/-1;
         }
       }
+      .planControls {display:flex;flex-wrap:wrap;gap:20px;padding:24px}.planControls label {display:flex;flex-direction:column;gap:10px;font-size:14px;flex:1;min-width:200px}.planControls input {padding:12px;border:1px solid var(--line);border-radius:8px;font:inherit;width:100%}.planNote {margin:0;padding:0 24px 24px;color:var(--muted);line-height:1.7}.planSummary {padding:20px 24px;border-top:1px solid var(--line)}.planSummary p {line-height:1.6}.planAlert {color:var(--red);font-weight:bold}.planGood {color:var(--green);font-weight:bold}
     </style>
   </head>
   <body>
@@ -757,6 +758,7 @@
       <nav class="viewNav" aria-label="Dashboard views">
         <button class="active" data-view="loans">Equipment by User</button>
         <button data-view="register">Full instrument register</button>
+        <button data-view="plan">Calibration Plan</button>
       </nav>
       <div id="error" class="error"></div>
       <section id="loansView" class="view">
@@ -901,6 +903,20 @@
           ><span>Alert threshold: 90 days before expiry</span>
         </footer>
       </section>
+      </section>
+
+      <section id="planView" class="view" hidden>
+        <section class="hero"><div><p class="eyebrow">CALIBRATION ROTATION</p><h1>Calibration Plan</h1><p class="lead">วางแผนให้มีกล้องพร้อมใช้งานต่อเนื่อง แยก Total Station และ Automatic Level</p></div></section>
+        <section class="panel"><div class="panelHead"><div><h2>ตั้งค่าแผน 12 เดือน</h2><p>ส่งสอบเทียบ 3 เดือนปฏิทิน • จำนวนที่ต้องใช้งานรวมเครื่องที่มีผู้รับผิดชอบอยู่แล้ว</p></div></div>
+        <div class="planControls">
+          <label>Total Station ที่ต้องใช้งาน<input id="planTS" type="number" min="0" max="1000" step="1" value="7"></label>
+          <label>Automatic Level ที่ต้องใช้งาน<input id="planLV" type="number" min="0" max="1000" step="1" value="7"></label>
+          <label>วันที่เริ่มแผน<input id="planStart" type="date"></label>
+          <label>อายุใบสอบเทียบหลังรับกลับ (เดือน)<input id="planValidity" type="number" min="1" max="60" step="1" value="6"></label>
+        </div>
+        <p class="planNote">สมมติฐาน: รับกลับตรงกำหนดและผ่านสอบเทียบ อายุใบใหม่เริ่มวันรับกลับ (ค่าเริ่มต้น 6 เดือน โปรดปรับตามใบรับรองจริง) วันหมดอายุในทะเบียนเป็นวันสุดท้ายที่ใช้ได้ เครื่องไม่มีวันหมดอายุหรือสภาพไม่พร้อมจะไม่นับเป็นเครื่องพร้อมใช้ เครื่องที่ส่งสอบเทียบอยู่แล้วต้องยืนยันวันรับกลับก่อนนำเข้าแผน แผนนี้เป็นการจำลอง ไม่เปลี่ยนทะเบียนจริง</p>
+        <div id="planResult" aria-live="polite"></div>
+        </section>
       </section>
     </main>
     <script>
@@ -1205,6 +1221,7 @@
           )
           .join("");
         renderRegister();
+        renderPlan();
       }
       function renderLoans() {
         const assignedItems = items.filter((x) => clean(x.custodian));
@@ -1271,6 +1288,7 @@
       }
       function setView(view) {
         activeView = view;
+        document.querySelector("#planView").hidden = view !== "plan";
         document.querySelector("#loansView").hidden = view !== "loans";
         document.querySelector("#registerView").hidden = view !== "register";
         document.querySelectorAll(".viewNav button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
@@ -1329,6 +1347,57 @@
           render();
         }
       };
+
+      function planDate(d) { return d.toISOString().slice(0,10); }
+      function parsePlanDate(s) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(s || "")) return null;
+        const d = new Date(s + "T00:00:00Z");
+        return Number.isFinite(+d) && planDate(d) === s ? d : null;
+      }
+      function planMonths(d, n) {
+        const r = new Date(d); r.setUTCDate(1); r.setUTCMonth(r.getUTCMonth()+n);
+        const last = new Date(Date.UTC(r.getUTCFullYear(),r.getUTCMonth()+1,0)).getUTCDate();
+        r.setUTCDate(Math.min(d.getUTCDate(),last)); return r;
+      }
+      function planReady(x) { return /^(ready for use|ready|good|available)$/i.test(clean(x.condition)); }
+      function calculatePlan(source, required, start, validity) {
+        const end = planMonths(start,12), events=[], shortages=[];
+        const fleet = source.map((x,index)=>({x,index,due:parsePlanDate(x.next),back:null,round:0}));
+        const eligible = fleet.filter(a=>planReady(a.x)&&a.due&&clean(a.x.serial));
+        const readyAt = d => eligible.filter(a=>a.back ? +a.back<=+d && +planMonths(a.back,validity)>=+d : +a.due>=+d).length;
+        let minimum=Infinity, firstShort="";
+        for(let day=new Date(start); +day<+end; day.setUTCDate(day.getUTCDate()+1)) {
+          for(const a of eligible) if(a.back && +a.back<=+day) {a.due=planMonths(a.back,validity);a.back=null;}
+          const candidates=eligible.filter(a=>!a.back && (a.round===0 || +planMonths(a.due,-3)<=+day)).sort((a,b)=>+a.due-+b.due || a.x.serial.localeCompare(b.x.serial));
+          for(const a of candidates) {
+            const back=planMonths(day,3);
+            let canSend=true;
+            // A valid unit may leave only if the remaining fleet covers every day until its return.
+            if(+a.due>=+day) for(let d=new Date(day);+d<+back;d.setUTCDate(d.getUTCDate()+1)) {
+              if(readyAt(d)-(+a.due>=+d?1:0)<required) {canSend=false;break;}
+            }
+            if(canSend) {events.push({x:a.x,send:planDate(day),back:planDate(back),due:planDate(a.due),late:+day>+planMonths(a.due,-3)});a.back=back;a.round++;}
+          }
+          const count=readyAt(day);minimum=Math.min(minimum,count);
+          if(count<required) {if(!firstShort)firstShort=planDate(day);shortages.push({date:planDate(day),count});}
+        }
+        return {events,minimum,firstShort,shortages,excluded:fleet.length-eligible.length,total:fleet.length};
+      }
+      function renderPlan() {
+        const start=parsePlanDate(document.querySelector("#planStart").value);
+        const validity=Number(document.querySelector("#planValidity").value);
+        const targets=[Number(document.querySelector("#planTS").value),Number(document.querySelector("#planLV").value)];
+        const result=document.querySelector("#planResult");
+        if(!start||!Number.isInteger(validity)||validity<1||validity>60||targets.some(n=>!Number.isInteger(n)||n<0||n>1000)) {result.textContent="กรุณาระบุวันที่และจำนวนเต็มตามช่วงที่กำหนด";return;}
+        if(!items.length) {result.textContent="รอข้อมูลทะเบียนจาก Google Sheets เพื่อคำนวณแผน";return;}
+        result.innerHTML=["Total Station","Automatic Level"].map((type,i)=>{
+          const source=items.filter(x=>x.category===type),p=calculatePlan(source,targets[i],start,validity);
+          return `<div class="planSummary"><h2>${type} · ต้องพร้อมใช้ ${targets[i]} เครื่อง</h2><p>ในทะเบียน ${p.total} เครื่อง · ไม่นับเครื่องไม่พร้อม/ข้อมูลไม่ครบ ${p.excluded} เครื่อง · พร้อมใช้ต่ำสุดตามแผน ${p.minimum} เครื่อง</p><p class="${p.firstShort?'planAlert':'planGood'}">${p.firstShort?`แผนยังไม่ครอบคลุม: เริ่มขาดวันที่ ${p.firstShort} รวม ${p.shortages.length} วัน ต้องจัดหาเครื่องทดแทนสูงสุด ${Math.max(0,targets[i]-p.minimum)} เครื่อง หรือปรับแผน/ยืนยันข้อมูลก่อนส่ง`:'จำนวนพร้อมใช้เพียงพอตลอด 12 เดือนตามสมมติฐาน'}</p><p>เรียงส่งเครื่องหมดอายุก่อน เริ่มหมุนเวียนล่วงหน้าได้ทันทีเมื่อจำนวนสำรองเพียงพอ เพื่อหลีกเลี่ยงหมดอายุพร้อมกัน แล้วส่งรอบถัดไปก่อนหมดอายุ 3 เดือน เครื่องหมดอายุแล้วเสนอให้ส่งทันที ตารางนี้เป็นแผนเสนอเบื้องต้น ไม่ใช่การรับประกันว่าเป็นแผนที่เหมาะที่สุด</p></div><div class="tableWrap"><table><thead><tr><th>เครื่อง / Serial</th><th>ผู้รับผิดชอบ</th><th>หมดอายุเดิม</th><th>วันส่ง</th><th>วันรับกลับโดยประมาณ</th><th>หมายเหตุ</th></tr></thead><tbody>${p.events.map(e=>`<tr><td><b>${esc(e.x.model)}</b><small>${esc(e.x.serial)} · ${esc(e.x.id)}</small></td><td>${esc(e.x.custodian||'—')}</td><td>${e.due}</td><td>${e.send}</td><td>${e.back}</td><td>${e.late?'ส่งช้ากว่าวันที่ควรส่งล่วงหน้า 3 เดือน':'ส่งล่วงหน้าก่อนหมดอายุ'}</td></tr>`).join('')||'<tr><td colspan="6">ยังไม่มีรอบส่งที่จัดได้ โปรดตรวจจำนวนสำรอง วันหมดอายุ และสภาพกล้อง</td></tr>'}</tbody></table></div>`;
+        }).join('');
+      }
+      document.querySelector("#planStart").value = new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Manila",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+      document.querySelectorAll(".planControls input").forEach(input=>input.addEventListener("change",renderPlan));
+      renderPlan();
       load();
     </script>
   </body>
