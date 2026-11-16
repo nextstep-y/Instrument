@@ -594,7 +594,7 @@
           padding: 8px 11px;
         }
         .refresh:after {
-          content: "Refresh";
+          content: var(--refresh-label, "Refresh");
           font-size: 12px;
         }
         .hero {
@@ -739,6 +739,15 @@
         }
       }
       .planControls {display:flex;flex-wrap:wrap;gap:20px;padding:24px}.planControls label {display:flex;flex-direction:column;gap:10px;font-size:14px;flex:1;min-width:200px}.planControls input {padding:12px;border:1px solid var(--line);border-radius:8px;font:inherit;width:100%}.planNote {margin:0;padding:0 24px 24px;color:var(--muted);line-height:1.7}.planSummary {padding:20px 24px;border-top:1px solid var(--line)}.planSummary p {line-height:1.6}.planAlert {color:var(--red);font-weight:bold}.planGood {color:var(--green);font-weight:bold}
+
+      .srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+      .languagePicker select{border:1px solid var(--line);border-radius:10px;background:white;color:var(--green);min-height:42px;padding:7px 10px;font:inherit;font-size:13px;font-weight:700}
+      .planAssumptions{margin:0 24px 20px;border:1px solid var(--line);border-radius:12px;padding:13px 16px;background:#f7faf8;color:var(--muted);font-size:13px;line-height:1.7}.planAssumptions summary{cursor:pointer;color:var(--green);font-weight:700}.planAssumptions p{margin-bottom:0}
+      .planToolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:16px 24px;border-top:1px solid var(--line)}.planKey{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted)}.planKey span{display:flex;align-items:center;gap:6px}.planKey i{width:10px;height:10px;display:inline-block;border-radius:3px}.keyReady{background:#bce8d0}.keyCal{background:#497fee}.keyExpired{background:#e87570}.keyExcluded{background:#c8ced2}
+      .planModes{display:flex;background:#edf2ef;border-radius:10px;padding:3px}.planModes button{border:0;background:transparent;color:var(--muted);padding:9px 13px;cursor:pointer;border-radius:8px;font-size:13px}.planModes button[aria-pressed=true]{background:white;box-shadow:0 2px 8px #153f3412;color:var(--green);font-weight:700}
+      .planFleet{border-top:1px solid var(--line);padding-bottom:12px}.fleetTitle{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.fleetTitle>span{color:var(--muted);font-size:12px}.planMetricGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}.planMetric{padding:14px 16px;background:#f2f7f4;border:1px solid #e4eee7;border-radius:12px}.planMetric strong{font-size:28px;display:block;line-height:1.2;color:var(--green);font-variant-numeric:tabular-nums}.planMetric span{font-size:12px;color:var(--muted);display:block;margin-top:5px}.planMetric.metricDanger{background:#fff1ef;border-color:#f1d4cf}.planMetric.metricDanger strong{color:var(--red)}.planNotice{padding:12px 15px;background:#eaf6ee;border-radius:10px;font-size:13px}.planNotice.planAlert{background:#fff0ed}.timelineHint{font-size:12px;color:var(--muted)}
+      .timelineScroll{overflow:auto;max-height:650px;border-block:1px solid var(--line);isolation:isolate}.timelineCanvas{min-width:1120px}.timelineRow{display:grid;grid-template-columns:210px 1fr;min-height:58px;border-bottom:1px solid #e7eeea}.timelineRow:last-child{border-bottom:0}.timelineName{padding:11px 16px;position:sticky;left:0;background:#fff;z-index:2;border-right:1px solid var(--line);font-size:12px;overflow:hidden}.timelineName b{display:block;color:var(--ink)}.timelineName small{display:block;margin-top:4px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.monthGrid,.timelineGrid{display:grid}.monthGrid>div{display:flex;align-items:center;justify-content:center;border-right:1px solid #e1eae4;font-size:11px}.timelineHeader{min-height:40px;background:#f3f7f4;position:sticky;top:0;z-index:5;font-weight:700;color:var(--muted)}.timelineHeader .timelineName{background:#f3f7f4;z-index:6}.coverageRow{min-height:65px;background:#fafcfb}.coverageRow .timelineName{background:#fafcfb}.coverageCell{margin:10px 4px;border-radius:8px;border:0!important}.coverageCell b{font-size:17px;font-variant-numeric:tabular-nums}.coverageCell small{font-size:10px;font-weight:400}.coverageOK{background:#e2f4e9;color:#216447}.coverageShort{background:#fde4df;color:#a83027}.timelineTrack{position:relative;min-width:0}.timelineGrid{position:absolute;inset:0;pointer-events:none}.timelineGrid i{border-right:1px solid #e7eeea}.timeBar{position:absolute;top:14px;height:30px;border:2px solid white;border-radius:7px;overflow:hidden;white-space:nowrap;font-size:10px;padding:0 6px;cursor:pointer;text-overflow:ellipsis;min-width:2px}.timeBar:hover{filter:brightness(.94);box-shadow:0 2px 8px #153f3425;z-index:3}.timeBar:focus-visible{outline:3px solid #183e80;outline-offset:2px;z-index:4}.timeBar-ready{background:#d3efdf;color:#2e6b4d}.timeBar-cal{background:#497fee;color:white;box-shadow:0 3px 6px #497fee25}.timeBar-expired{background:repeating-linear-gradient(135deg,#f8d2ce,#f8d2ce 7px,#f3beb9 7px,#f3beb9 14px);color:#8c3029}.timeBar-excluded{background:#e5e8ea;color:#677279}.planBarDetail{padding:12px 24px;color:var(--muted);font-size:12px;min-height:44px}.planSchedule[hidden],.timelineScroll[hidden]{display:none}.planSchedule{overflow-x:auto}
+      @media(max-width:720px){.planMetricGrid{grid-template-columns:repeat(2,1fr)}.planSummary{padding:18px 16px}.planToolbar{padding:16px}.planControls{padding:16px}.planAssumptions{margin-inline:16px}.timelineRow{grid-template-columns:150px 1fr}.timelineCanvas{min-width:1050px}.timelineName{padding:11px 10px}.planToolbar{align-items:flex-start}.planKey{gap:10px}.actions{gap:6px}.languagePicker select{max-width:92px}}
     </style>
   </head>
   <body>
@@ -751,6 +760,7 @@
           </div>
         </div>
         <div class="actions">
+          <label class="languagePicker"><span class="srOnly">Language / ภาษา</span><select id="language" aria-label="Language / ภาษา"><option value="th">ไทย</option><option value="en">English</option></select></label>
           <span class="live"><i></i>Live Google Sheets</span
           ><button id="refresh" class="refresh">↻ Refresh data</button>
         </div>
@@ -906,20 +916,24 @@
       </section>
 
       <section id="planView" class="view" hidden>
-        <section class="hero"><div><p class="eyebrow">CALIBRATION ROTATION</p><h1>Calibration Plan</h1><p class="lead">วางแผนให้มีกล้องพร้อมใช้งานต่อเนื่อง แยก Total Station และ Automatic Level</p></div></section>
-        <section class="panel"><div class="panelHead"><div><h2>ตั้งค่าแผน 12 เดือน</h2><p>ส่งสอบเทียบ 3 เดือนปฏิทิน • จำนวนที่ต้องใช้งานรวมเครื่องที่มีผู้รับผิดชอบอยู่แล้ว</p></div></div>
+        <section class="hero"><div><p class="eyebrow">CALIBRATION ROTATION</p><h1>Calibration Plan</h1><p class="lead">A clear view of every instrument, every calibration, and your field coverage.</p></div></section>
+        <section class="panel"><div class="panelHead"><div><h2>Plan your next 12 months</h2><p>Calibration takes 3 calendar months. Field targets include instruments already assigned to users.</p></div><span class="legend">Simulation · Live register</span></div>
         <div class="planControls">
-          <label>Total Station ที่ต้องใช้งาน<input id="planTS" type="number" min="0" max="1000" step="1" value="7"></label>
-          <label>Automatic Level ที่ต้องใช้งาน<input id="planLV" type="number" min="0" max="1000" step="1" value="7"></label>
-          <label>วันที่เริ่มแผน<input id="planStart" type="date"></label>
-          <label>อายุใบสอบเทียบหลังรับกลับ (เดือน)<input id="planValidity" type="number" min="1" max="60" step="1" value="6"></label>
+          <label>Required Total Stations<input id="planTS" type="number" min="0" max="1000" step="1" value="7"></label>
+          <label>Required Automatic Levels<input id="planLV" type="number" min="0" max="1000" step="1" value="7"></label>
+          <label>Plan start date<input id="planStart" type="date"></label>
+          <label>Certificate validity after return (months)<input id="planValidity" type="number" min="1" max="60" step="1" value="6"></label>
         </div>
-        <p class="planNote">สมมติฐาน: รับกลับตรงกำหนดและผ่านสอบเทียบ อายุใบใหม่เริ่มวันรับกลับ (ค่าเริ่มต้น 6 เดือน โปรดปรับตามใบรับรองจริง) วันหมดอายุในทะเบียนเป็นวันสุดท้ายที่ใช้ได้ เครื่องไม่มีวันหมดอายุหรือสภาพไม่พร้อมจะไม่นับเป็นเครื่องพร้อมใช้ เครื่องที่ส่งสอบเทียบอยู่แล้วต้องยืนยันวันรับกลับก่อนนำเข้าแผน แผนนี้เป็นการจำลอง ไม่เปลี่ยนทะเบียนจริง</p>
+        <details class="planAssumptions"><summary>Planning assumptions</summary><p>Assumes on-time return and successful calibration. New certificate validity starts on return (default: 6 months; adjust to the actual certificate). An expiry date is the last usable day. Instruments with missing dates, missing serials, or unavailable conditions are excluded. Instruments already away need a confirmed return date before inclusion. This simulation does not change the register.</p><p>Earliest expiry goes first. The first rotation may start early to stagger simultaneous expiries; later rotations aim to leave 3 months before expiry. Valid instruments leave only when remaining coverage meets the target until return. Expired instruments are proposed for immediate calibration. This is a suggested rotation, not an optimized or guaranteed plan.</p></details>
+        <div class="planToolbar"><div class="planKey"><span><i class="keyReady"></i>Ready for fieldwork</span><span><i class="keyCal"></i>Calibration · 3 months</span><span><i class="keyExpired"></i>Expired / shortage</span><span><i class="keyExcluded"></i>Excluded / check data</span></div><div class="planModes" role="group" aria-label="Plan display"><button type="button" data-plan-mode="timeline" aria-pressed="true">Timeline</button><button type="button" data-plan-mode="table" aria-pressed="false">Schedule list</button></div></div>
         <div id="planResult" aria-live="polite"></div>
         </section>
       </section>
     </main>
     <script>
+      let language = "th", planDisplay = "timeline";
+      try { language = localStorage.getItem("instrument-language") === "en" ? "en" : "th"; } catch {}
+      const L = (en, th) => language === "th" ? th : en;
       const SHEET_ID = "1m7s0JDQIPmouRrFZRE2a4Dcc_XVW-LsJKUrgzkkdKUY",
         SOURCE_SHEETS = [
           "TOTAL STATION",
@@ -1159,6 +1173,7 @@
             "Unable to load Google Sheets. Please refresh the page. " +
             e.message;
           box.style.display = "block";
+          translateInterface();
         } finally {
           btn.disabled = false;
         }
@@ -1222,6 +1237,7 @@
           .join("");
         renderRegister();
         renderPlan();
+        translateInterface();
       }
       function renderLoans() {
         const assignedItems = items.filter((x) => clean(x.custodian));
@@ -1253,6 +1269,7 @@
         document.querySelector("#loanShowing").textContent = `Showing ${visible.length} of ${rows.length} users · ${assignedItems.length} assigned items`;
         if (selectedCustodian && !people.has(selectedCustodian)) selectedCustodian = "";
         renderLoanDetail();
+        translateInterface();
       }
       function isAvailableNow(x) {
         return !clean(x.custodian) && !overallStatus(x).blocked;
@@ -1299,7 +1316,7 @@
             .filter(
               (x) =>
                 (active === "All" || x.group === active) &&
-                Object.values(x).join(" ").toLowerCase().includes(q),
+                Object.values(x).flatMap(value=>[value,translateText(String(value))]).join(" ").toLowerCase().includes(q),
             )
             .sort((a, b) => Number(damaged(b)) - Number(damaged(a)));
         document.querySelector("#registerBody").innerHTML = rows
@@ -1313,6 +1330,7 @@
         document.querySelector("#empty").hidden = !!rows.length;
         document.querySelector("#showing").textContent =
           `Showing ${rows.length} of ${items.length} instruments`;
+        translateInterface();
       }
       function esc(v) {
         return clean(v).replace(
@@ -1348,6 +1366,178 @@
         }
       };
 
+      const interfaceTranslations = {
+  "Survey Instrument": "ทะเบียนเครื่องมือสำรวจ",
+  "Equipment Register · J.2505": "ทะเบียนเครื่องมือ · J.2505",
+  "Live Google Sheets": "ข้อมูลสดจาก Google Sheets",
+  "↻ Refresh data": "↻ รีเฟรชข้อมูล",
+  "Refresh": "รีเฟรช",
+  "Equipment by User": "เครื่องมือตามผู้รับผิดชอบ",
+  "Full instrument register": "ทะเบียนเครื่องมือทั้งหมด",
+  "Calibration Plan": "แผนสอบเทียบ",
+  "EQUIPMENT BY USER": "เครื่องมือตามผู้รับผิดชอบ",
+  "Shows who is currently using or responsible for each item, calculated live from Google Sheets.": "ดูผู้ใช้งานหรือผู้รับผิดชอบเครื่องมือแต่ละรายการจาก Google Sheets",
+  "Total equipment": "เครื่องมือทั้งหมด",
+  "All registered items": "รายการทั้งหมดในทะเบียน",
+  "Assigned items": "เครื่องมือที่มีผู้รับผิดชอบ",
+  "Currently held": "อยู่กับผู้รับผิดชอบ",
+  "Users": "ผู้รับผิดชอบ",
+  "People with equipment": "ผู้ที่ถือครองเครื่องมือ",
+  "Unassigned items": "ยังไม่มีผู้รับผิดชอบ",
+  "User is blank": "ช่องผู้รับผิดชอบว่าง",
+  "Available now": "พร้อมเบิกใช้งาน",
+  "Ready and unassigned": "พร้อมใช้และยังไม่มีผู้รับผิดชอบ",
+  "⚠ Damaged assigned": "⚠ เครื่องชำรุดที่มีผู้รับผิดชอบ",
+  "Do not use": "ห้ามใช้งาน",
+  "AVAILABILITY BY EQUIPMENT TYPE": "จำนวนพร้อมใช้แยกตามประเภท",
+  "What can be used now": "เครื่องมือที่พร้อมใช้งาน",
+  "Available now means no custodian, ready for use, and calibration is not overdue.": "พร้อมเบิกใช้งาน หมายถึง ยังไม่มีผู้รับผิดชอบ สภาพพร้อมใช้ และไม่เลยกำหนดสอบเทียบ",
+  "Live from 16 equipment sheets": "ข้อมูลสดจากชีตเครื่องมือ 16 ประเภท",
+  "Equipment type": "ประเภทเครื่องมือ",
+  "Total": "รวม",
+  "With user": "มีผู้รับผิดชอบ",
+  "Not available": "ยังไม่พร้อมเบิก",
+  "Calibration action": "ต้องสอบเทียบ",
+  "BREAKDOWN BY USER": "รายละเอียดตามผู้รับผิดชอบ",
+  "User": "ผู้รับผิดชอบ",
+  "Damaged": "ชำรุด",
+  "No users match your search.": "ไม่พบผู้รับผิดชอบที่ค้นหา",
+  "Select a user to view their items": "เลือกผู้รับผิดชอบเพื่อดูรายการเครื่องมือ",
+  "ASSIGNED ITEMS": "เครื่องมือที่มีผู้รับผิดชอบ",
+  "User equipment": "เครื่องมือของผู้รับผิดชอบ",
+  "Instrument": "เครื่องมือ",
+  "Brand / Model": "ยี่ห้อ / รุ่น",
+  "Serial No.": "หมายเลขเครื่อง",
+  "Overall status": "สถานะโดยรวม",
+  "Calibration due": "วันครบกำหนดสอบเทียบ",
+  "Custodian": "ผู้รับผิดชอบ",
+  "INSTRUMENT CONTROL CENTER": "ศูนย์ควบคุมเครื่องมือสำรวจ",
+  "Instrument register": "ทะเบียนเครื่องมือ",
+  "Track custodians, equipment condition, and calibration due dates in one mobile-friendly register.": "ติดตามผู้รับผิดชอบ สภาพเครื่องมือ และกำหนดสอบเทียบในทะเบียนที่รองรับมือถือ",
+  "Require attention": "ต้องตรวจสอบ",
+  "Total instruments": "เครื่องมือทั้งหมด",
+  "Items in register": "รายการในทะเบียน",
+  "⚠ Damaged equipment": "⚠ เครื่องมือชำรุด",
+  "Calibration overdue": "เลยกำหนดสอบเทียบ",
+  "Take action now": "ดำเนินการทันที",
+  "Due within 90 days": "ครบกำหนดภายใน 90 วัน",
+  "Schedule service": "วางแผนส่งสอบเทียบ",
+  "Missing calibration data": "ไม่มีข้อมูลสอบเทียบ",
+  "Review required": "ต้องตรวจสอบข้อมูล",
+  "ALL EQUIPMENT TYPES": "เครื่องมือทุกประเภท",
+  "Equipment summary": "สรุปเครื่องมือ",
+  "Current totals grouped by equipment type.": "จำนวนปัจจุบันแยกตามประเภทเครื่องมือ",
+  "Needs calibration = overdue or due within 90 days": "ต้องสอบเทียบ = เลยกำหนดหรือครบกำหนดภายใน 90 วัน",
+  "Needs calibration": "ต้องสอบเทียบ",
+  "Missing schedule": "ไม่มีกำหนดสอบเทียบ",
+  "EQUIPMENT REGISTER": "ทะเบียนเครื่องมือ",
+  "Instrument list": "รายการเครื่องมือ",
+  "No instruments match your search.": "ไม่พบเครื่องมือที่ค้นหา",
+  "Alert threshold: 90 days before expiry": "แจ้งเตือนล่วงหน้า 90 วันก่อนหมดอายุ",
+  "All": "ทั้งหมด",
+  "CALIBRATION ROTATION": "แผนหมุนเวียนสอบเทียบ",
+  "A clear view of every instrument, every calibration, and your field coverage.": "เห็นช่วงใช้งานและช่วงสอบเทียบของกล้องแต่ละเครื่อง พร้อมตรวจจำนวนที่พอใช้งาน",
+  "Plan your next 12 months": "วางแผนล่วงหน้า 12 เดือน",
+  "Calibration takes 3 calendar months. Field targets include instruments already assigned to users.": "ส่งสอบเทียบ 3 เดือนปฏิทิน • จำนวนที่ต้องใช้งานรวมเครื่องที่มีผู้รับผิดชอบอยู่แล้ว",
+  "Simulation · Live register": "แผนจำลอง · ข้อมูลจากทะเบียน",
+  "Required Total Stations": "Total Station ที่ต้องพร้อมใช้งาน",
+  "Required Automatic Levels": "กล้องระดับที่ต้องพร้อมใช้งาน",
+  "Plan start date": "วันที่เริ่มแผน",
+  "Certificate validity after return (months)": "อายุใบสอบเทียบหลังรับกลับ (เดือน)",
+  "Planning assumptions": "สมมติฐานในการวางแผน",
+  "Assumes on-time return and successful calibration. New certificate validity starts on return (default: 6 months; adjust to the actual certificate). An expiry date is the last usable day. Instruments with missing dates, missing serials, or unavailable conditions are excluded. Instruments already away need a confirmed return date before inclusion. This simulation does not change the register.": "สมมติว่ารับกลับตรงกำหนดและผ่านสอบเทียบ อายุใบใหม่เริ่มวันรับกลับ (ค่าเริ่มต้น 6 เดือน โปรดปรับตามใบรับรองจริง) วันหมดอายุคือวันสุดท้ายที่ใช้ได้ เครื่องไม่มีวันหมดอายุ ไม่มี Serial หรือสภาพไม่พร้อมจะไม่นับเป็นเครื่องพร้อมใช้ เครื่องที่ส่งสอบเทียบอยู่แล้วต้องยืนยันวันรับกลับก่อนนำเข้าแผน แผนจำลองนี้ไม่เปลี่ยนทะเบียนจริง",
+  "Earliest expiry goes first. The first rotation may start early to stagger simultaneous expiries; later rotations aim to leave 3 months before expiry. Valid instruments leave only when remaining coverage meets the target until return. Expired instruments are proposed for immediate calibration. This is a suggested rotation, not an optimized or guaranteed plan.": "เรียงเครื่องที่หมดอายุก่อนส่งก่อน รอบแรกอาจส่งล่วงหน้าเร็วขึ้นเพื่อลดการหมดอายุพร้อมกัน รอบต่อไปตั้งเป้าส่งก่อนหมดอายุ 3 เดือน เครื่องที่ใบยังไม่หมดอายุจะส่งได้เมื่อเครื่องที่เหลือพอใช้งานจนถึงวันรับกลับ ส่วนเครื่องหมดอายุแล้วเสนอให้ส่งทันที นี่เป็นแผนเสนอเบื้องต้น ไม่ใช่การรับประกันว่าเป็นแผนที่เหมาะที่สุด",
+  "Ready for fieldwork": "พร้อมใช้งาน",
+  "Calibration · 3 months": "ส่งสอบเทียบ · 3 เดือน",
+  "Expired / shortage": "หมดอายุ / จำนวนไม่พอ",
+  "Excluded / check data": "ไม่นับในแผน / ตรวจข้อมูล",
+  "Timeline": "แถบเวลา",
+  "Schedule list": "ตารางส่งสอบเทียบ",
+  "Total Station": "กล้อง Total Station",
+  "Automatic Level": "กล้องระดับ",
+  "Single Prism": "ปริซึมเดี่ยว",
+  "Mini Prism": "มินิปริซึม",
+  "Aluminium Tripod": "ขาตั้งอะลูมิเนียม",
+  "Total Station Battery": "แบตเตอรี่ Total Station",
+  "Walkie Talkie": "วิทยุสื่อสาร",
+  "Calculator": "เครื่องคิดเลข",
+  "Umbrella": "ร่ม",
+  "Safety Harness": "สายรัดนิรภัย",
+  "Bipod": "ขาค้ำสองขา",
+  "Measure Tape (5m)": "ตลับเมตร (5 ม.)",
+  "Measure Tape (10m)": "ตลับเมตร (10 ม.)",
+  "Measure Tape (50m)": "เทปวัดระยะ (50 ม.)",
+  "Accessories": "อุปกรณ์เสริม",
+  "In custody": "มีผู้รับผิดชอบ",
+  "Custodians": "ผู้รับผิดชอบ",
+  "Not permitted for use": "ห้ามนำไปใช้งาน",
+  "No calibration record": "ไม่มีข้อมูลสอบเทียบ",
+  "View certificate ↗": "ดูใบรับรอง ↗",
+  "⚠ DAMAGED — DO NOT USE": "⚠ ชำรุด — ห้ามใช้งาน",
+  "RETIRED — DO NOT USE": "ปลดระวาง — ห้ามใช้งาน",
+  "UNDER REPAIR — DO NOT USE": "อยู่ระหว่างซ่อม — ห้ามใช้งาน",
+  "SENT FOR CALIBRATION": "ส่งสอบเทียบอยู่",
+  "CALIBRATION OVERDUE — DO NOT USE": "เลยกำหนดสอบเทียบ — ห้ามใช้งาน",
+  "NO CALIBRATION RECORD": "ไม่มีข้อมูลสอบเทียบ",
+  "READY & CALIBRATED": "พร้อมใช้และผ่านสอบเทียบ",
+  "Overdue": "เลยกำหนด",
+  "No record": "ไม่มีข้อมูล",
+  "Valid": "ยังไม่หมดอายุ",
+  "Ready for Use": "พร้อมใช้งาน",
+  "Under Repair": "อยู่ระหว่างซ่อม",
+  "Retired": "ปลดระวาง",
+  "Sent for Calibration": "ส่งสอบเทียบอยู่",
+  "Search user…": "ค้นหาผู้รับผิดชอบ…",
+  "Search model, serial, custodian…": "ค้นหารุ่น หมายเลขเครื่อง ผู้รับผิดชอบ…",
+  "Dashboard views": "มุมมองทะเบียน",
+  "Instrument categories": "ประเภทเครื่องมือ",
+  "Plan display": "รูปแบบแผน"
+};
+      const originalText = new WeakMap(), originalAttributes = new WeakMap();
+      function translateText(value) {
+        if(language==='en')return value;
+        const key=value.trim().replace(/\s+/g,' ');
+        let translated=interfaceTranslations[key];
+        if(!translated) {
+          const rules=[
+            [/^Showing (\d+) of (\d+) instruments$/,m=>`แสดง ${m[1]} จาก ${m[2]} เครื่อง`],
+            [/^Showing (\d+) of (\d+) users · (\d+) assigned items$/,m=>`แสดง ${m[1]} จาก ${m[2]} คน · เครื่องมือมีผู้รับผิดชอบ ${m[3]} รายการ`],
+            [/^(.+) · (\d+) items$/,m=>`${m[1]} · ${m[2]} รายการ`],
+            [/^(\d+) days left$/,m=>`เหลือ ${m[1]} วัน`],
+            [/^CALIBRATION (\d+) DAYS LEFT$/,m=>`สอบเทียบ: เหลือ ${m[1]} วัน`],
+            [/^Last calibrated (.+)$/,m=>`สอบเทียบล่าสุด ${m[1]}`],
+            [/^Physical condition: (.+)$/,m=>`สภาพเครื่อง: ${interfaceTranslations[m[1]]||m[1]}`],
+            [/^Unable to load Google Sheets\. Please refresh the page\. (.*)$/,m=>`โหลด Google Sheets ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ ${m[1]}`]
+          ];
+          for(const [pattern,render] of rules){const match=key.match(pattern);if(match){translated=render(match);break;}}
+        }
+        return translated ? value.replace(value.trim(),translated) : value;
+      }
+      function translateInterface() {
+        document.documentElement.lang=language;
+        document.documentElement.style.setProperty("--refresh-label",language==='th'?'"รีเฟรช"':'"Refresh"');
+        document.title=language==='th'?'ทะเบียนเครื่องมือสำรวจ | J.2505':'Survey Instrument Register | J.2505';
+        // Store source UI text per node so switching languages never translates register data in memory.
+        const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+        let node;
+        while((node=walker.nextNode())) {
+          if(node.parentElement.closest('script,style,#planResult,.languagePicker'))continue;
+          let record=originalText.get(node);
+          if(!record||node.nodeValue!==record.display)record={source:node.nodeValue};
+          record.display=translateText(record.source);node.nodeValue=record.display;originalText.set(node,record);
+        }
+        document.querySelectorAll('[placeholder],[data-label],[aria-label]').forEach(el=>{
+          if(el.closest('#planResult,.languagePicker'))return;
+          const saved=originalAttributes.get(el)||{};
+          for(const attr of ['placeholder','data-label','aria-label']) {
+            if(!el.hasAttribute(attr))continue;
+            const current=el.getAttribute(attr),record=saved[attr];
+            const source=record&&record.display===current?record.source:current,display=translateText(source);
+            el.setAttribute(attr,display);saved[attr]={source,display};
+          }
+          originalAttributes.set(el,saved);
+        });
+      }
       function planDate(d) { return d.toISOString().slice(0,10); }
       function parsePlanDate(s) {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(s || "")) return null;
@@ -1361,7 +1551,7 @@
       }
       function planReady(x) { return /^(ready for use|ready|good|available)$/i.test(clean(x.condition)); }
       function calculatePlan(source, required, start, validity) {
-        const end = planMonths(start,12), events=[], shortages=[];
+        const end = planMonths(start,12), events=[], shortages=[], daily=[];
         const fleet = source.map((x,index)=>({x,index,due:parsePlanDate(x.next),back:null,round:0}));
         const eligible = fleet.filter(a=>planReady(a.x)&&a.due&&clean(a.x.serial));
         const readyAt = d => eligible.filter(a=>a.back ? +a.back<=+d && +planMonths(a.back,validity)>=+d : +a.due>=+d).length;
@@ -1378,26 +1568,88 @@
             }
             if(canSend) {events.push({x:a.x,send:planDate(day),back:planDate(back),due:planDate(a.due),late:+day>+planMonths(a.due,-3)});a.back=back;a.round++;}
           }
-          const count=readyAt(day);minimum=Math.min(minimum,count);
+          const count=readyAt(day);minimum=Math.min(minimum,count);daily.push({date:planDate(day),count});
           if(count<required) {if(!firstShort)firstShort=planDate(day);shortages.push({date:planDate(day),count});}
         }
-        return {events,minimum,firstShort,shortages,excluded:fleet.length-eligible.length,total:fleet.length};
+        return {events,daily,minimum,firstShort,shortages,excluded:fleet.length-eligible.length,total:fleet.length};
+      }
+      function planLocaleDate(value) {
+        const d=parsePlanDate(value);
+        return d ? new Intl.DateTimeFormat(language === "th" ? "th-TH" : "en-GB", {day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}).format(d) : value;
+      }
+      function planSegments(x, events, start, validity) {
+        const end=planMonths(start,12), rounds=events.filter(e=>e.x===x);
+        const eligible=planReady(x)&&parsePlanDate(x.next)&&clean(x.serial);
+        if(!eligible) return [{from:planDate(start),to:planDate(end),status:"excluded"}];
+        const boundaries=new Set([+start,+end]);
+        const afterExpiry=d=>new Date(+d+86400000);
+        [afterExpiry(parsePlanDate(x.next)),...rounds.flatMap(e=>[parsePlanDate(e.send),parsePlanDate(e.back),afterExpiry(planMonths(parsePlanDate(e.back),validity))])].forEach(d=>{if(+d>+start&&+d<+end)boundaries.add(+d)});
+        const points=[...boundaries].sort((a,b)=>a-b),segments=[];
+        for(let i=0;i<points.length-1;i++) {
+          const from=planDate(new Date(points[i])), to=planDate(new Date(points[i+1]));
+          let due=x.next,status="ready";
+          for(const e of rounds) {
+            if(e.back<=from) due=planDate(planMonths(parsePlanDate(e.back),validity));
+            if(e.send<=from&&e.back>from) {status="cal";break;}
+          }
+          if(status!=="cal"&&due<from)status="expired";
+          const previous=segments.at(-1);
+          if(previous&&previous.status===status)previous.to=to;else segments.push({from,to,status});
+        }
+        return segments;
+      }
+      function planTimeline(source,p,start,required,validity) {
+        const end=planMonths(start,12), length=+end-+start;
+        const months=Array.from({length:12},(_,i)=>({from:planMonths(start,i),to:planMonths(start,i+1)}));
+        const columns=months.map(m=>(+m.to-+m.from)/length+"fr").join(" ");
+        const monthLabels=months.map(m=>`<div title="${esc(planLocaleDate(planDate(m.from))+' – '+planLocaleDate(planDate(new Date(+m.to-86400000))))}">${esc(new Intl.DateTimeFormat(language==='th'?'th-TH':'en-GB',{month:'short',year:'2-digit',timeZone:'UTC'}).format(m.from))}</div>`).join('');
+        const coverage=months.map(m=>{
+          const days=p.daily.filter(d=>d.date>=planDate(m.from)&&d.date<planDate(m.to)),min=Math.min(...days.map(d=>d.count));
+          return `<div class="coverageCell ${min<required?'coverageShort':'coverageOK'}" title="${esc(L('Monthly minimum ready','จำนวนพร้อมใช้ต่ำสุดในช่วงเดือน'))}"><b>${min}<small> / ${required}</small></b></div>`;
+        }).join('');
+        const statusNames={ready:L('Ready for fieldwork','พร้อมใช้งาน'),cal:L('Calibration','ส่งสอบเทียบ'),expired:L('Certificate expired','ใบสอบเทียบหมดอายุ'),excluded:L('Excluded: check condition, expiry and serial','ไม่นับในแผน: ตรวจสภาพ วันหมดอายุ และ Serial')};
+        const rows=[...source].sort((a,b)=>(a.next||'9999').localeCompare(b.next||'9999')||a.serial.localeCompare(b.serial)).map(x=>{
+          const bars=planSegments(x,p.events,start,validity).map(seg=>{
+            const left=(+parsePlanDate(seg.from)-+start)/length*100,width=(+parsePlanDate(seg.to)-+parsePlanDate(seg.from))/length*100;
+            const desc=`${x.model} · ${x.serial||x.id} · ${statusNames[seg.status]} · ${planLocaleDate(seg.from)} – ${planLocaleDate(planDate(new Date(+parsePlanDate(seg.to)-86400000)))}`;
+            return `<button type="button" class="timeBar timeBar-${seg.status}" style="left:${left}%;width:${width}%" title="${esc(desc)}" aria-label="${esc(desc)}" data-plan-detail="${esc(desc)}">${width>12?esc(statusNames[seg.status]):''}</button>`;
+          }).join('');
+          return `<div class="timelineRow"><div class="timelineName"><b>${esc(x.serial||x.id)}</b><small>${esc(x.model)} · ${esc(x.custodian||L('Unassigned','ยังไม่มีผู้รับผิดชอบ'))}</small></div><div class="timelineTrack"><div class="timelineGrid" style="grid-template-columns:${columns}" aria-hidden="true">${months.map(()=>'<i></i>').join('')}</div>${bars}</div></div>`;
+        }).join('');
+        return `<div class="timelineScroll" ${planDisplay==='table'?'hidden':''}><div class="timelineCanvas"><div class="timelineRow timelineHeader"><div class="timelineName">${L('Instrument / Serial','เครื่อง / Serial')}</div><div class="monthGrid" style="grid-template-columns:${columns}">${monthLabels}</div></div><div class="timelineRow coverageRow"><div class="timelineName"><b>${L('Minimum ready','พร้อมใช้ต่ำสุด')}</b><small>${L('Each month · target','แต่ละเดือน · เป้าหมาย')} ${required}</small></div><div class="monthGrid" style="grid-template-columns:${columns}">${coverage}</div></div>${rows||`<p class="planNote">${L('No instruments in this category.','ไม่พบเครื่องประเภทนี้ในทะเบียน')}</p>`}</div></div>`;
       }
       function renderPlan() {
         const start=parsePlanDate(document.querySelector("#planStart").value);
         const validity=Number(document.querySelector("#planValidity").value);
         const targets=[Number(document.querySelector("#planTS").value),Number(document.querySelector("#planLV").value)];
         const result=document.querySelector("#planResult");
-        if(!start||!Number.isInteger(validity)||validity<1||validity>60||targets.some(n=>!Number.isInteger(n)||n<0||n>1000)) {result.textContent="กรุณาระบุวันที่และจำนวนเต็มตามช่วงที่กำหนด";return;}
-        if(!items.length) {result.textContent="รอข้อมูลทะเบียนจาก Google Sheets เพื่อคำนวณแผน";return;}
+        if(["#planTS","#planLV","#planValidity"].some(id=>document.querySelector(id).value.trim()==="")||!start||!Number.isInteger(validity)||validity<1||validity>60||targets.some(n=>!Number.isInteger(n)||n<0||n>1000)) {result.textContent=L('Enter a valid date and whole numbers within the allowed ranges.','กรุณาระบุวันที่และจำนวนเต็มตามช่วงที่กำหนด');return;}
+        if(!items.length) {result.textContent=L('Waiting for Google Sheets register data to calculate the plan.','รอข้อมูลทะเบียนจาก Google Sheets เพื่อคำนวณแผน');return;}
         result.innerHTML=["Total Station","Automatic Level"].map((type,i)=>{
           const source=items.filter(x=>x.category===type),p=calculatePlan(source,targets[i],start,validity);
-          return `<div class="planSummary"><h2>${type} · ต้องพร้อมใช้ ${targets[i]} เครื่อง</h2><p>ในทะเบียน ${p.total} เครื่อง · ไม่นับเครื่องไม่พร้อม/ข้อมูลไม่ครบ ${p.excluded} เครื่อง · พร้อมใช้ต่ำสุดตามแผน ${p.minimum} เครื่อง</p><p class="${p.firstShort?'planAlert':'planGood'}">${p.firstShort?`แผนยังไม่ครอบคลุม: เริ่มขาดวันที่ ${p.firstShort} รวม ${p.shortages.length} วัน ต้องจัดหาเครื่องทดแทนสูงสุด ${Math.max(0,targets[i]-p.minimum)} เครื่อง หรือปรับแผน/ยืนยันข้อมูลก่อนส่ง`:'จำนวนพร้อมใช้เพียงพอตลอด 12 เดือนตามสมมติฐาน'}</p><p>เรียงส่งเครื่องหมดอายุก่อน เริ่มหมุนเวียนล่วงหน้าได้ทันทีเมื่อจำนวนสำรองเพียงพอ เพื่อหลีกเลี่ยงหมดอายุพร้อมกัน แล้วส่งรอบถัดไปก่อนหมดอายุ 3 เดือน เครื่องหมดอายุแล้วเสนอให้ส่งทันที ตารางนี้เป็นแผนเสนอเบื้องต้น ไม่ใช่การรับประกันว่าเป็นแผนที่เหมาะที่สุด</p></div><div class="tableWrap"><table><thead><tr><th>เครื่อง / Serial</th><th>ผู้รับผิดชอบ</th><th>หมดอายุเดิม</th><th>วันส่ง</th><th>วันรับกลับโดยประมาณ</th><th>หมายเหตุ</th></tr></thead><tbody>${p.events.map(e=>`<tr><td><b>${esc(e.x.model)}</b><small>${esc(e.x.serial)} · ${esc(e.x.id)}</small></td><td>${esc(e.x.custodian||'—')}</td><td>${e.due}</td><td>${e.send}</td><td>${e.back}</td><td>${e.late?'ส่งช้ากว่าวันที่ควรส่งล่วงหน้า 3 เดือน':'ส่งล่วงหน้าก่อนหมดอายุ'}</td></tr>`).join('')||'<tr><td colspan="6">ยังไม่มีรอบส่งที่จัดได้ โปรดตรวจจำนวนสำรอง วันหมดอายุ และสภาพกล้อง</td></tr>'}</tbody></table></div>`;
+          const name=type==='Total Station'?L('Total Station','กล้อง Total Station'):L('Automatic Level','กล้องระดับ');
+          const cards=[[targets[i],L('Required in the field','ต้องพร้อมใช้งาน')],[p.minimum,L('Lowest ready count','พร้อมใช้ต่ำสุด')],[p.events.length,L('Calibration trips','รอบส่งสอบเทียบ')],[p.shortages.length,L('Days below target','วันที่จำนวนไม่พอ')]];
+          return `<section class="planFleet"><div class="planSummary"><div class="fleetTitle"><h2>${name}</h2><span>${p.total} ${L('registered','เครื่องในทะเบียน')} · ${p.excluded} ${L('excluded','เครื่องไม่นับในแผน')}</span></div><div class="planMetricGrid">${cards.map(([value,label],j)=>`<div class="planMetric ${j===3&&value?'metricDanger':''}"><strong>${value}</strong><span>${label}</span></div>`).join('')}</div><p class="planNotice ${p.firstShort?'planAlert':'planGood'}">${p.firstShort?L(`Coverage gap starts ${planLocaleDate(p.firstShort)}. Arrange up to ${Math.max(0,targets[i]-p.minimum)} replacement instruments, or revise the plan before dispatch.`,`เริ่มขาดเครื่องวันที่ ${planLocaleDate(p.firstShort)} ต้องจัดหาเครื่องทดแทนสูงสุด ${Math.max(0,targets[i]-p.minimum)} เครื่อง หรือปรับแผนก่อนส่ง`):L('Field target is covered for all 12 months under these assumptions.','จำนวนพร้อมใช้เพียงพอตลอด 12 เดือนตามสมมติฐาน')}</p><p class="timelineHint">${L('Each row is one instrument. Select a bar for exact dates. Monthly badges show the lowest ready count, not an average. Periods start on the plan start day.','หนึ่งแถวต่อหนึ่งเครื่อง กดแถบสีเพื่อดูวันที่ ตัวเลขรายเดือนคือจำนวนพร้อมใช้ต่ำสุด ไม่ใช่ค่าเฉลี่ย แต่ละช่วงเดือนนับจากวันที่เริ่มแผน')}</p></div>${planTimeline(source,p,start,targets[i],validity)}<div class="planBarDetail" role="status">${L('Select any timeline bar to see its dates and status.','กดแถบเวลาเพื่อดูวันที่และสถานะของเครื่อง')}</div><div class="tableWrap planSchedule" ${planDisplay==='timeline'?'hidden':''}><table><thead><tr>${[L('Instrument / Serial','เครื่อง / Serial'),L('Custodian','ผู้รับผิดชอบ'),L('Previous expiry','หมดอายุเดิม'),L('Send','วันส่ง'),L('Expected return','วันรับกลับโดยประมาณ'),L('Note','หมายเหตุ')].map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${p.events.map(e=>`<tr><td><b>${esc(e.x.model)}</b><small>${esc(e.x.serial)} · ${esc(e.x.id)}</small></td><td>${esc(e.x.custodian||'—')}</td><td>${planLocaleDate(e.due)}</td><td>${planLocaleDate(e.send)}</td><td>${planLocaleDate(e.back)}</td><td>${e.late?L('Later than the 3-month lead date','ส่งช้ากว่าวันที่ควรส่งล่วงหน้า 3 เดือน'):L('Before expiry','ส่งก่อนหมดอายุ')}</td></tr>`).join('')||`<tr><td colspan="6">${L('No dispatch can be scheduled. Check spare capacity, expiry dates and instrument conditions.','ยังไม่มีรอบส่งที่จัดได้ โปรดตรวจจำนวนสำรอง วันหมดอายุ และสภาพกล้อง')}</td></tr>`}</tbody></table></div></section>`;
         }).join('');
+        document.querySelectorAll('[data-plan-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.planMode===planDisplay)));
       }
       document.querySelector("#planStart").value = new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Manila",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
       document.querySelectorAll(".planControls input").forEach(input=>input.addEventListener("change",renderPlan));
-      renderPlan();
+      document.querySelector("#language").value=language;
+      document.querySelector("#language").addEventListener("change",e=>{
+        language=e.target.value==='en'?'en':'th';
+        try {localStorage.setItem("instrument-language",language);}catch{}
+        renderPlan();translateInterface();
+      });
+      document.querySelector(".planModes").addEventListener("click",e=>{
+        const button=e.target.closest('[data-plan-mode]');if(!button)return;
+        planDisplay=button.dataset.planMode;renderPlan();
+      });
+      document.querySelector("#planResult").addEventListener("click",e=>{
+        const bar=e.target.closest('[data-plan-detail]');if(!bar)return;
+        bar.closest('.planFleet').querySelector('.planBarDetail').textContent=bar.dataset.planDetail;
+      });
+      renderPlan();translateInterface();
       load();
     </script>
   </body>
