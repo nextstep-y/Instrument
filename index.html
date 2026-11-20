@@ -800,18 +800,6 @@
           <article class="damaged"><span>⚠ Damaged assigned</span><strong id="loanDamaged">–</strong><small>Do not use</small></article>
         </section>
         <section class="panel">
-          <div class="panelHead">
-            <div><p class="eyebrow">AVAILABILITY BY EQUIPMENT TYPE</p><h2>What can be used now</h2><p>Available now means no custodian, ready for use, and calibration is not overdue.</p></div>
-            <span class="legend">Live from 16 equipment sheets</span>
-          </div>
-          <div class="tableWrap">
-            <table class="summary availabilityTable">
-              <thead><tr><th>Equipment type</th><th>Total</th><th>With user</th><th>Available now</th><th>Not available</th><th>Calibration action</th><th>Users</th></tr></thead>
-              <tbody id="availabilityBody"></tbody>
-            </table>
-          </div>
-        </section>
-        <section class="panel">
           <div class="registerHead">
             <div><p class="eyebrow">BREAKDOWN BY USER</p><h2>Equipment by User</h2></div>
             <label class="search">⌕<input id="employeeSearch" placeholder="Search user…" /></label>
@@ -1273,7 +1261,6 @@
         document.querySelector("#unassigned").textContent = unassignedItems.length;
         document.querySelector("#availableNow").textContent = items.filter(isAvailableNow).length;
         document.querySelector("#loanDamaged").textContent = assignedItems.filter(damaged).length;
-        renderAvailability();
         document.querySelector("#loanHead").innerHTML = `<tr><th>User</th>${types.map((t) => `<th>${esc(t)}</th>`).join("")}<th>Total</th><th>Damaged</th></tr>`;
         const q = document.querySelector("#employeeSearch").value.toLowerCase();
         const visible = rows.filter((p) => p.name.toLowerCase().includes(q));
@@ -1286,23 +1273,6 @@
       }
       function isAvailableNow(x) {
         return !clean(x.custodian) && !overallStatus(x).blocked;
-      }
-      function renderAvailability() {
-        const map = new Map(SOURCE_SHEETS.map((source) => [equipmentGroup(source, source), {
-          name: equipmentGroup(source, source), total: 0, assigned: 0, available: 0,
-          calibration: 0, custodians: new Set(),
-        }]));
-        for (const x of items) {
-          const r = map.get(x.group) || { name: x.group, total: 0, assigned: 0, available: 0, calibration: 0, custodians: new Set() };
-          r.total++;
-          if (clean(x.custodian)) { r.assigned++; r.custodians.add(clean(x.custodian)); }
-          if (isAvailableNow(x)) r.available++;
-          if (state(x.next).key === "overdue") r.calibration++;
-          map.set(x.group, r);
-        }
-        document.querySelector("#availabilityBody").innerHTML = [...map.values()].map((r) =>
-          `<tr><td><b>${esc(r.name)}</b></td><td data-label="Total"><span class="value totalValue">${r.total}</span></td><td data-label="In custody"><span class="value ${r.assigned ? "totalValue" : "quiet"}">${r.assigned}</span></td><td data-label="Available now"><span class="value ${r.available ? "availableValue" : "quiet"}">${r.available}</span></td><td data-label="Not available"><span class="value ${r.total - r.available ? "missingValue" : "quiet"}">${r.total - r.available}</span></td><td data-label="Calibration action"><span class="value ${r.calibration ? "actionValue" : "quiet"}">${r.calibration}</span></td><td class="custodianList" data-label="Custodians">${esc([...r.custodians].sort((a,b) => a.localeCompare(b)).join(", ") || "—")}</td></tr>`
-        ).join("");
       }
       function renderLoanDetail() {
         const panel = document.querySelector("#loanDetail");
@@ -1402,10 +1372,6 @@
   "Ready and unassigned": "พร้อมใช้และยังไม่มีผู้รับผิดชอบ",
   "⚠ Damaged assigned": "⚠ เครื่องชำรุดที่มีผู้รับผิดชอบ",
   "Do not use": "ห้ามใช้งาน",
-  "AVAILABILITY BY EQUIPMENT TYPE": "จำนวนพร้อมใช้แยกตามประเภท",
-  "What can be used now": "เครื่องมือที่พร้อมใช้งาน",
-  "Available now means no custodian, ready for use, and calibration is not overdue.": "พร้อมเบิกใช้งาน หมายถึง ยังไม่มีผู้รับผิดชอบ สภาพพร้อมใช้ และไม่เลยกำหนดสอบเทียบ",
-  "Live from 16 equipment sheets": "ข้อมูลสดจากชีตเครื่องมือ 16 ประเภท",
   "Equipment type": "ประเภทเครื่องมือ",
   "Total": "รวม",
   "With user": "มีผู้รับผิดชอบ",
